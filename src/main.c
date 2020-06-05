@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "ijvm.h"
+#include <ijvm.h>
 
 void print_help()
 {
