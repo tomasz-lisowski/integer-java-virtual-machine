@@ -5,13 +5,19 @@ static bool last_op_invalid = false;
 static bool next_op_wide = false;
 
 
-static byte_t get_arg()
+/**
+* Get a one byte argument from code memory
+**/
+static byte_t get_arg_byte()
 {
 	return (g_cpu_ptr->code_mem)[g_cpu_ptr->ip++];
 }
 
 
-static short get_wide_arg()
+/**
+* Get a two byte argument from code memory
+**/
+static short get_arg_short()
 {
 	byte_t b1 = (g_cpu_ptr->code_mem)[g_cpu_ptr->ip++];
 	byte_t b2 = (g_cpu_ptr->code_mem)[g_cpu_ptr->ip++];
@@ -20,21 +26,19 @@ static short get_wide_arg()
 
 
 static void exec_op_nop()
-{
-
-}
+{}
 
 
 static void exec_op_bipush()
 {
-	word_t arg = (word_t)((int8_t)get_arg());
+	word_t arg = (word_t)((int8_t)get_arg_byte());
 	stack_push(arg);
 }
 
 
 static void exec_op_ldc_w()
 {
-	short const_index = get_wide_arg();
+	short const_index = get_arg_short();
 	stack_push((g_cpu_ptr->data_mem)[const_index]);
 }
 
@@ -104,25 +108,38 @@ static void exec_op_iinc()
 
 static void exec_op_ifeq()
 {
-
+	short target = get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
+	if (stack_pop() == 0)
+	{
+		g_cpu_ptr->ip += target;
+	}
 }
 
 
 static void exec_op_iflt()
 {
-
+	short target = get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
+	if (stack_pop() < 0)
+	{
+		g_cpu_ptr->ip += target;
+	}
 }
 
 
 static void exec_op_icmpeq()
 {
-
+	short target = get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
+	if (stack_pop() ==  stack_pop())
+	{
+		g_cpu_ptr->ip += target;
+	}
 }
 
 
 static void exec_op_goto()
 {
-	
+	short target = get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
+	g_cpu_ptr->ip += target;
 }
 
 
@@ -173,7 +190,7 @@ static void exec_op_err()
 
 static void exec_op_halt()
 {
-
+	// TODO: Create and set a HALT flag inside the CPU
 }
 
 
@@ -186,10 +203,7 @@ void run(void)
 	dprintf("[VM START]\n");
 	while (!finished())
 	{
-		if (!step())
-		{
-			break; // Step failed to complete
-		}
+		step();
 	}
 	dprintf("[VM STOP]\n");
 }
@@ -275,9 +289,8 @@ bool step(void)
 		exec_op_halt();
 		break;
 	default:
-		dprintf("[INVALID OP]");
+		dprintf("[INVALID OP 0x%X]\n", (g_cpu_ptr->code_mem)[g_cpu_ptr->ip - 1]);
 		last_op_invalid = true;
-		return false;
 	}
 
 	dprintf("%s\t", step_msg);
