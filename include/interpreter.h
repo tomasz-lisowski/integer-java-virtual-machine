@@ -1,10 +1,12 @@
 #ifndef INTERPRETER_H
 #define INTERPRETER_H
 
-#include <stdbool.h> /* Contains bool type */
 
 #include "types.h"
 #include "cpu.h"
+#include "bytecode.h"
+#include "util.h"
+#include "init.h"
 
 
 /**

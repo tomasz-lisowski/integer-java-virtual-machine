@@ -3,10 +3,9 @@
 
 #include <stdlib.h> /* For malloc */
 #include <stdio.h>  /* Contains FILE * type */
-#include <stdbool.h> /* Contains bool type */
-#include <endian.h> /* Endianness conversions */
 
 #include "cpu.h"
+#include "types.h"
 
 
 /**

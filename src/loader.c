@@ -42,6 +42,10 @@ static bool load_consts(FILE* f, CPU_t* cpu)
 
     cpu->data_mem = (word_t*)malloc(cpu->data_mem_size / sizeof(word_t));
     fread(cpu->data_mem, sizeof(word_t), cpu->data_mem_size / sizeof(word_t), f);
+    for (unsigned int i = 0; i < cpu->data_mem_size / sizeof(word_t); i++)
+    {
+        (cpu->data_mem)[i] = swap_uint32((cpu->data_mem)[i]);
+    }
 
     return true;
 }
@@ -88,6 +92,6 @@ bool load_bin(char* path, CPU_t* cpu)
     load_code(f, cpu);
 
     fclose(f);
-    dprintf("[LOAD OK]\n\n");
+    dprintf("[LOAD OK]\n");
     return true;
 }
