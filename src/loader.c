@@ -1,100 +1,93 @@
-#include <ijvm.h>
-#include "globals.h"
-#include <stdlib.h>
+#include "loader.h"
+#include "util.h"
 
-
-BIN_t b;
-
-
-static uint32_t swap_uint32(uint32_t num)
-{
-    return((num >> 24) & 0xff) | ((num << 8) & 0xff0000) | ((num >> 8) & 0xff00) | ((num << 24) & 0xff000000);
-}
+/**
+* Unique file signature of IJVM libraries
+**/
+static uint32_t MAGIC_NUMBER = 0x1DEADFAD;
 
 
 /**
- * Initializes the IJVM with the binary file found at the provided argument
- * Note. You need to be able to re-initialize the IJVM after it has been started.
- *
- * Returns  0 on success
- *         -1 on failure
- **/
-int init_ijvm(char* binary_path)
+* Check that magic number fits the IJVM binary signature
+* Returns  1 on good magic number
+*          0 on bad magic number
+**/
+static bool check_file_signature(word_t magic_number)
 {
-    // Uses global variable "BIN b" to store file data;
-    FILE* f;
-    
-    fprintf(stderr, "[LOAD START]\n");
-    if ((f = fopen(binary_path, "r")))
+    if (swap_uint32(magic_number) != MAGIC_NUMBER)
     {
-        fread(&(b.magic_number), sizeof(b.magic_number), 1, f);
-        b.magic_number = swap_uint32(b.magic_number);
-        if (b.magic_number != MAGIC_NUMBER)
-        {
-            fprintf(stderr, "[LOAD BAD]\n");
-            return -1;
-        }
-
-        fread(&(b.const_pool_origin), sizeof(b.const_pool_origin), 1, f);
-        b.const_pool_origin = swap_uint32(b.const_pool_origin);
-
-        fread(&(b.const_pool_size), sizeof(b.const_pool_size), 1, f);
-        b.const_pool_size = swap_uint32(b.const_pool_size);
-
-        b.const_pool = (int32_t*)malloc(b.const_pool_size / sizeof(int32_t));
-        fread(b.const_pool, sizeof(int32_t), b.const_pool_size / sizeof(int32_t), f);
-        for (uint32_t i = 0; i < b.const_pool_size / sizeof(int32_t); i++)
-        {
-            b.const_pool[i] = swap_uint32(b.const_pool[i]);
-        }
-
-        fread(&(b.text_origin), sizeof(b.text_origin), 1, f);
-        b.text_origin = swap_uint32(b.text_origin);
-        
-        fread(&(b.text_size), sizeof(b.text_size), 1, f);
-        b.text_size = swap_uint32(b.text_size);
-        
-        b.text = (byte_t*)malloc(b.text_size / sizeof(byte_t));
-        fread(b.text, sizeof(byte_t), b.text_size, f);
-
-        fclose(f);
-
-        fprintf(stderr, "Binary\n\tMagic Num: 0x%X\n\tConstant Pool Origin: 0x%X\n\tConstant Pool Size: 0x%X\n", b.magic_number, b.const_pool_origin, b.const_pool_size);
-        fprintf(stderr, "Consts\n");
-        for (size_t i = 0; i < b.const_pool_size / sizeof(int32_t); i++)
-        {
-            fprintf(stderr, "\t0x%X\n", b.const_pool[i]);
-        }
-        fprintf(stderr, "Text\n\tText Pool Origin: 0x%X\n\tText Size: 0x%X\n", b.text_origin, b.text_size);
-        fprintf(stderr, "OPs\n");
-        for (size_t i = 0; i < b.text_size / sizeof(char); i++)
-        {
-            fprintf(stderr, "\t0x%X\n", b.text[i]);
-        }
-        fprintf(stderr, "[LOAD OK]\n\n");
-        return 0;
+        dprintf("[BAD FILE SIGNATURE]\n");
+        return false;
     }
     else
     {
-        fprintf(stderr, "[LOAD BAD]\n");
-        return -1;
+        return true;
     }
 }
 
 
 /**
- * Returns the currently loaded program text as a byte array.
- **/
-byte_t* get_text(void)
+* Given an open file, load the const origin, size, and pool into the CPU
+* Returns  1 on success
+*          0 on failure
+**/
+static bool load_consts(FILE* f, CPU_t* cpu)
 {
-    return b.text;
+    uint32_t const_pool_origin;
+    fread(&(const_pool_origin), sizeof(const_pool_origin), 1, f);
+    const_pool_origin = swap_uint32(const_pool_origin);
+
+    fread(&(cpu->data_mem_size), sizeof(cpu->data_mem_size), 1, f);
+    cpu->data_mem_size = swap_uint32(cpu->data_mem_size);
+
+    cpu->data_mem = (word_t*)malloc(cpu->data_mem_size / sizeof(word_t));
+    fread(cpu->data_mem, sizeof(word_t), cpu->data_mem_size / sizeof(word_t), f);
+
+    return true;
 }
 
 
 /**
- * Returns the size of the currently loaded program text.
- **/
-int text_size(void)
+* Given an open file, load the text origin, size, and code into the CPU
+* Returns  1 on success
+*          0 on failure
+**/
+static bool load_code(FILE* f, CPU_t* cpu)
 {
-    return b.text_size;
+    uint32_t text_origin;
+    fread(&(text_origin), sizeof(text_origin), 1, f);
+    text_origin = swap_uint32(text_origin);
+
+    fread(&(cpu->code_mem_size), sizeof(cpu->code_mem_size), 1, f);
+    cpu->code_mem_size = swap_uint32(cpu->code_mem_size);
+
+    cpu->code_mem = (byte_t*)malloc(cpu->code_mem_size / sizeof(byte_t));
+    fread(cpu->code_mem, sizeof(byte_t), cpu->code_mem_size, f);
+
+    return true;
+}
+
+
+bool load_bin(char* path, CPU_t* cpu)
+{
+    FILE* f;
+    if (!(f = fopen(path, "rb")))
+    {
+        dprintf("[FILE COULD NOT BE OPENED]\n");
+        return false;
+    }
+
+    uint32_t magic_number;
+    fread(&(magic_number), sizeof(magic_number), 1, f);
+    if (check_file_signature(magic_number) != true)
+    {
+        return false;
+    }
+
+    load_consts(f, cpu);
+    load_code(f, cpu);
+
+    fclose(f);
+    dprintf("[LOAD OK]\n\n");
+    return true;
 }
