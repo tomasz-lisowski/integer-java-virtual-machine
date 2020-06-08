@@ -176,7 +176,15 @@ static void exec_op_wide()
 
 static void exec_op_in()
 {
-
+	word_t c = (word_t)getc(g_in_file);
+	if (c == EOF)
+	{
+		stack_push(0);
+	}
+	else
+	{
+		stack_push(c);
+	}
 }
 
 
