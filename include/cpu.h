@@ -6,19 +6,25 @@
 
 typedef struct CPU_t
 {
-	int data_mem_size;
+	int const_mem_size;
 	int code_mem_size;
 	int stack_size;
+    int local_var_mem_size;
 
-	word_t* data_mem;
+	word_t* const_mem;
 	byte_t* code_mem;
 	word_t* stack;
+    word_t* local_var_mem;
 
 	int sp;
+	int pc;
 	int fp;
-	int ip;
+
+    int blv; // Pointer to first element in local variable memory
+    int tlv; // Pointer to last element in local variable memory
 
     bool error_flag;
+    bool halt_flag;
 }CPU_t;
 
 
@@ -101,6 +107,12 @@ word_t get_local_variable(int i);
 
 
 /**
+ * Update the value of i'th local variable in current frame (or create one if it does not exist)
+ **/
+void update_local_variable(word_t new_val, int i);
+
+
+/**
 * Print out a complete state of a CPU
 **/
 void print_cpu_state(CPU_t* cpu, bool compact);
@@ -113,13 +125,13 @@ void print_cpu_mem_size(CPU_t* cpu, bool compact);
 
 
 /**
-* Print out CPU data memory contents
+* Print out data memory contents
 **/
-void print_cpu_data_mem(CPU_t* cpu, bool compact);
+void print_cpu_const_mem(CPU_t* cpu, bool compact);
 
 
 /**
-* Print out CPU code memory contents
+* Print out code memory contents
 **/
 void print_cpu_code_mem(CPU_t* cpu, bool compact);
 
@@ -131,8 +143,20 @@ void print_cpu_registers(CPU_t* cpu, bool compact);
 
 
 /**
-* Print out CPU stack contents
+* Print out stack contents
 **/
 void print_cpu_stack(CPU_t* cpu, bool compact);
+
+
+/**
+* Print out all local variables
+**/
+void print_cpu_local_vars(CPU_t* cpu, bool compact);
+
+
+/**
+* Print out local variables in current local frame
+**/
+void print_cpu_local_vars_current_frame(CPU_t* cpu, bool compact);
 
 #endif

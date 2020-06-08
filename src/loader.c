@@ -37,14 +37,14 @@ static bool load_consts(FILE* f, CPU_t* cpu)
     fread(&(const_pool_origin), sizeof(const_pool_origin), 1, f);
     const_pool_origin = swap_uint32(const_pool_origin);
 
-    fread(&(cpu->data_mem_size), sizeof(cpu->data_mem_size), 1, f);
-    cpu->data_mem_size = swap_uint32(cpu->data_mem_size);
+    fread(&(cpu->const_mem_size), sizeof(cpu->const_mem_size), 1, f);
+    cpu->const_mem_size = swap_uint32(cpu->const_mem_size);
 
-    cpu->data_mem = (word_t*)malloc(cpu->data_mem_size / sizeof(word_t));
-    fread(cpu->data_mem, sizeof(word_t), cpu->data_mem_size / sizeof(word_t), f);
-    for (unsigned int i = 0; i < cpu->data_mem_size / sizeof(word_t); i++)
+    cpu->const_mem = (word_t*)malloc(cpu->const_mem_size / sizeof(word_t));
+    fread(cpu->const_mem, sizeof(word_t), cpu->const_mem_size / sizeof(word_t), f);
+    for (unsigned int i = 0; i < cpu->const_mem_size / sizeof(word_t); i++)
     {
-        (cpu->data_mem)[i] = swap_uint32((cpu->data_mem)[i]);
+        (cpu->const_mem)[i] = swap_uint32((cpu->const_mem)[i]);
     }
 
     return true;

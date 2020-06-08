@@ -7,9 +7,9 @@ void destroy_ijvm(void)
 	{
 		free(g_cpu_ptr->code_mem);
 	}
-	if (g_cpu_ptr->data_mem != NULL)
+	if (g_cpu_ptr->const_mem != NULL)
 	{
-		free(g_cpu_ptr->data_mem);
+		free(g_cpu_ptr->const_mem);
 	}
 	if (g_cpu_ptr->stack != NULL)
 	{

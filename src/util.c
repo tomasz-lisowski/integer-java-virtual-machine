@@ -12,78 +12,78 @@ char* op_decode(byte_t op)
 	switch (op)
 	{
 	case OP_NOP:
-		return "NOP          ";
+		return "NOP";
 		break;
 	case OP_BIPUSH:
-		return "BIPUSH       ";
+		return "BIPUSH";
 		break;
 	case OP_LDC_W:
-		return "LDC_W        ";
+		return "LDC_W";
 		break;
 	case OP_ILOAD:
-		return "ILOAD        ";
+		return "ILOAD";
 		break;
 	case OP_ISTORE:
-		return "ISTORE       ";
+		return "ISTORE";
 		break;
 	case OP_POP:
-		return "POP          ";
+		return "POP";
 		break;
 	case OP_DUP:
-		return "DUP          ";
+		return "DUP";
 		break;
 	case OP_SWAP:
-		return "SWAP         ";
+		return "SWAP";
 		break;
 	case OP_IADD:
-		return "IADD         ";
+		return "IADD";
 		break;
 	case OP_ISUB:
-		return "ISUB         ";
+		return "ISUB";
 		break;
 	case OP_IAND:
-		return "IAND         ";
+		return "IAND";
 		break;
 	case OP_IINC:
-		return "IINC         ";
+		return "IINC";
 		break;
 	case OP_IFEQ:
-		return "IFEQ         ";
+		return "IFEQ";
 		break;
 	case OP_IFLT:
-		return "IFLT         ";
+		return "IFLT";
 		break;
 	case OP_ICMPEQ:
-		return "ICMPEQ       ";
+		return "ICMPEQ";
 		break;
 	case OP_GOTO:
-		return "GOTO         ";
+		return "GOTO";
 		break;
 	case OP_IRETURN:
-		return "IRETURN      ";
+		return "IRETURN";
 		break;
 	case OP_IOR:
-		return "IOR          ";
+		return "IOR";
 		break;
 	case OP_INVOKEVIRTUAL:
 		return "INVOKEVIRTUAL";
 		break;
 	case OP_WIDE:
-		return "WIDE         ";
+		return "WIDE";
 		break;
 	case OP_IN:
-		return "IN           ";
+		return "IN";
 		break;
 	case OP_OUT:
-		return "OUT          ";
+		return "OUT";
 		break;
 	case OP_ERR:
-		return "ERR          ";
+		return "ERR";
 		break;
 	case OP_HALT:
-		return "HALT         ";
+		return "HALT";
 		break;
 	default:
-		return "NULL         ";
+		return "NULL";
 	}
 }

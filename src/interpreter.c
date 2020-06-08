@@ -10,7 +10,7 @@ static bool next_op_wide = false;
 **/
 static byte_t get_arg_byte()
 {
-	return (g_cpu_ptr->code_mem)[g_cpu_ptr->ip++];
+	return (g_cpu_ptr->code_mem)[g_cpu_ptr->pc++];
 }
 
 
@@ -19,8 +19,8 @@ static byte_t get_arg_byte()
 **/
 static short get_arg_short()
 {
-	byte_t b1 = (g_cpu_ptr->code_mem)[g_cpu_ptr->ip++];
-	byte_t b2 = (g_cpu_ptr->code_mem)[g_cpu_ptr->ip++];
+	byte_t b1 = (g_cpu_ptr->code_mem)[g_cpu_ptr->pc++];
+	byte_t b2 = (g_cpu_ptr->code_mem)[g_cpu_ptr->pc++];
 	return (b1 << 8) | b2;
 }
 
@@ -39,19 +39,22 @@ static void exec_op_bipush()
 static void exec_op_ldc_w()
 {
 	short const_index = get_arg_short();
-	stack_push((g_cpu_ptr->data_mem)[const_index]);
+	stack_push((g_cpu_ptr->const_mem)[const_index]);
 }
 
 
 static void exec_op_iload()
 {
-
+	byte_t i = get_arg_byte();
+	stack_push(get_local_variable(i));
 }
 
 
 static void exec_op_istore()
 {
-
+	word_t val = stack_pop();
+	byte_t i = get_arg_byte();
+	update_local_variable(val, i);
 }
 
 
@@ -102,7 +105,9 @@ static void exec_op_iand()
 
 static void exec_op_iinc()
 {
-
+	byte_t var_i = get_arg_byte();
+	int8_t c = (int8_t)get_arg_byte();
+	update_local_variable(c + get_local_variable(var_i), var_i);
 }
 
 
@@ -111,7 +116,7 @@ static void exec_op_ifeq()
 	short target = get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
 	if (stack_pop() == 0)
 	{
-		g_cpu_ptr->ip += target;
+		g_cpu_ptr->pc += target;
 	}
 }
 
@@ -121,7 +126,7 @@ static void exec_op_iflt()
 	short target = get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
 	if (stack_pop() < 0)
 	{
-		g_cpu_ptr->ip += target;
+		g_cpu_ptr->pc += target;
 	}
 }
 
@@ -131,7 +136,7 @@ static void exec_op_icmpeq()
 	short target = get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
 	if (stack_pop() ==  stack_pop())
 	{
-		g_cpu_ptr->ip += target;
+		g_cpu_ptr->pc += target;
 	}
 }
 
@@ -139,7 +144,7 @@ static void exec_op_icmpeq()
 static void exec_op_goto()
 {
 	short target = get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
-	g_cpu_ptr->ip += target;
+	g_cpu_ptr->pc += target;
 }
 
 
@@ -212,9 +217,9 @@ void run(void)
 bool step(void)
 {
 	char step_msg[256];
-	sprintf(step_msg, "IP %i\tOP %s", g_cpu_ptr->ip, op_decode(get_instruction()));
+	sprintf(step_msg, "OPC: %-4i OP: %-14s", g_cpu_ptr->pc, op_decode(get_instruction()));
 
-	switch ((g_cpu_ptr->code_mem)[(g_cpu_ptr->ip)++])
+	switch ((g_cpu_ptr->code_mem)[(g_cpu_ptr->pc)++])
 	{
 	case OP_NOP:
 		exec_op_nop();
@@ -289,14 +294,16 @@ bool step(void)
 		exec_op_halt();
 		break;
 	default:
-		dprintf("[INVALID OP 0x%X]\n", (g_cpu_ptr->code_mem)[g_cpu_ptr->ip - 1]);
+		dprintf("[INVALID OP 0x%X]\n", (g_cpu_ptr->code_mem)[g_cpu_ptr->pc - 1]);
 		last_op_invalid = true;
 	}
 
-	dprintf("%s\t", step_msg);
+	dprintf("%s", step_msg);
 	print_cpu_registers(g_cpu_ptr, true);
 	dprintf(" ");
 	print_cpu_stack(g_cpu_ptr, true);
+	dprintf("\t");
+	print_cpu_local_vars_current_frame(g_cpu_ptr, true);
 	dprintf("\n");
 
 	return true;
@@ -314,7 +321,7 @@ bool finished(void)
 	if (end_of_code || halt_op || err_op || invalid_op || cpu_err)
 	{
 		if (end_of_code) {
-			dprintf("[EOT]\n");
+			dprintf("[TEXT_END]\n");
 		}
 		else if (halt_op)
 		{
@@ -326,11 +333,11 @@ bool finished(void)
 		}
 		else if (invalid_op)
 		{
-			dprintf("[LOI]\n");
+			dprintf("[INV_OP]\n");
 		}
 		else if (cpu_err)
 		{
-			dprintf("[ERR FLAG]\n");
+			dprintf("[ERR_FLAG]\n");
 		}
 		return true;
 	}
