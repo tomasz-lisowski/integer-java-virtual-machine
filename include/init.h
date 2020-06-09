@@ -1,15 +1,10 @@
 #ifndef INIT_H
 #define INIT_H
 
-#include <stdio.h>  /* Contains FILE * type */
 
 #include "cpu.h"
 #include "config.h"
 #include "loader.h"
-
-
-extern FILE* g_out_file;
-extern FILE* g_in_file;
 
 
 /**

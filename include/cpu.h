@@ -9,59 +9,25 @@ typedef struct CPU_t
 	int const_mem_size;
 	int code_mem_size;
 	int stack_size;
-    int local_var_mem_size;
 
 	word_t* const_mem;
 	byte_t* code_mem;
 	word_t* stack;
-    word_t* local_var_mem;
 
 	int sp;
 	int pc;
 	int fp;
-
-    int blv; // Pointer to first element in local variable memory
-    int tlv; // Pointer to last element in local variable memory
+    int lv;
+    int nv; // Number of vars in current frame (number of arguments + local variables)
 
     bool error_flag;
     bool halt_flag;
 }CPU_t;
 
 
-extern CPU_t* g_cpu_ptr; // One CPU shared across the entire machine
-
-
-/**
- * Returns the currently loaded program text as a byte array
- **/
-byte_t* get_text(void);
-
-
-/**
- * Returns the size of the currently loaded program text
- **/
-int text_size(void);
-
-
-/**
- * Returns the value of the program counter (as an integer offset from the first instruction).
- **/
-int get_program_counter(void);
-
-
-/**
- * @param i, index of the constant to obtain
- * @return The constant at location i in the constant pool.
- **/
-word_t get_constant(int i);
-
-
-/**
- * @return The value of the current instruction represented as a byte_t.
- *
- * This should NOT increase the program counter.
- **/
-byte_t get_instruction(void);
+extern CPU_t* restrict g_cpu_ptr; // One CPU shared across the entire machine
+extern FILE* restrict g_out_file;
+extern FILE* restrict g_in_file;
 
 
 /**
@@ -69,20 +35,6 @@ byte_t get_instruction(void);
  * frame, interpreted as a signed integer.
  **/
 word_t tos(void);
-
-
-/**
- * Returns the stack of the current frame as an array of integers,
- * with entry[0] being the very bottom of the stack and
- * entry[stack_size() - 1] being the top.
- **/
-word_t* get_stack(void);
-
-
-/**
- * Returns the size of the stack of the current frame.
- **/
-int stack_size(void);
 
 
 /**
@@ -100,6 +52,12 @@ word_t stack_pop(void);
 
 
 /**
+ * Returns the i'th constant from constant memory
+ **/
+word_t get_constant(int i);
+
+
+/**
  * @param i, index of variable to obtain.
  * @return Returns the i:th local variable of the current frame.
  **/
@@ -113,50 +71,15 @@ void update_local_variable(word_t new_val, int i);
 
 
 /**
-* Print out a complete state of a CPU
+* Functions to print out CPU state
 **/
-void print_cpu_state(CPU_t* cpu, bool compact);
-
-
-/**
-* Print out CPU memory block sizes
-**/
-void print_cpu_mem_size(CPU_t* cpu, bool compact);
-
-
-/**
-* Print out data memory contents
-**/
-void print_cpu_const_mem(CPU_t* cpu, bool compact);
-
-
-/**
-* Print out code memory contents
-**/
-void print_cpu_code_mem(CPU_t* cpu, bool compact);
-
-
-/**
-* Print out CPU register contents
-**/
-void print_cpu_registers(CPU_t* cpu, bool compact);
-
-
-/**
-* Print out stack contents
-**/
-void print_cpu_stack(CPU_t* cpu, bool compact);
-
-
-/**
-* Print out all local variables
-**/
-void print_cpu_local_vars(CPU_t* cpu, bool compact);
-
-
-/**
-* Print out local variables in current local frame
-**/
-void print_cpu_local_vars_current_frame(CPU_t* cpu, bool compact);
+void print_cpu_state(bool compact);
+void print_cpu_mem_size(bool compact);
+void print_cpu_const_mem(bool compact);
+void print_cpu_code_mem(bool compact);
+void print_cpu_registers(bool compact);
+void print_cpu_stack(bool compact);
+void print_cpu_local_vars(bool compact);
+void print_cpu_local_vars_current_frame(bool compact);
 
 #endif

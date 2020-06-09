@@ -1,6 +1,7 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+#include <stdio.h>  /* Contains FILE * type */
 #include <stdint.h>  /* contains exact integer types int32_t, uint8_t */
 #include <stdbool.h> /* Contains bool type */
 

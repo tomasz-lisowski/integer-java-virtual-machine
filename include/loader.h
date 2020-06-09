@@ -6,6 +6,7 @@
 
 #include "cpu.h"
 #include "types.h"
+#include "terminate.h"
 
 
 /**
@@ -13,6 +14,6 @@
 * Returns  1 on success
 *          0 on failure
 **/
-bool load_bin(char* path, CPU_t* cpu);
+bool load_bin(char* path);
 
 #endif
