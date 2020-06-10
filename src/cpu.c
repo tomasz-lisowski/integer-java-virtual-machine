@@ -23,6 +23,7 @@ bool stack_push(word_t e)
 {
     if (g_cpu_ptr->sp >= g_cpu_ptr->stack_size)
     {
+        // TODO: Call a stack resizing function instead of crashing
         g_cpu_ptr->error_flag = true; // Stack overflow
         return false;
     }

@@ -113,11 +113,21 @@ static uint32_t get_num_local_vars_main()
 **/
 static void init_stack()
 {
-	g_cpu_ptr->stack_size = STACK_SIZE;
+	uint32_t main_num_vars = get_num_local_vars_main();
+
+	// MAX_SIZE = 4294967296 = (4096 * 4) * 8^i where i == 6
+	for (uint32_t i = 0; i <= 6; i++)
+	{
+		// Find smallest suitable stack size 
+		if (main_num_vars + 1024 <= 4096 * 4 * power(8, i)) // 1024 is an arbitrary margin for operands
+		{
+			g_cpu_ptr->stack_size = 4096 * power(8, i);
+			break;
+		}
+	}
 	g_cpu_ptr->stack = (word_t*)malloc(sizeof(word_t) * g_cpu_ptr->stack_size);
 
 	// Pre-allocate local variable memory before the operand stack of main
-	uint32_t main_num_vars = get_num_local_vars_main();
 	g_cpu_ptr->sp = main_num_vars - 1;
 	g_cpu_ptr->lv = 0;
 	g_cpu_ptr->nv = main_num_vars;

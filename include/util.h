@@ -25,6 +25,12 @@ uint32_t swap_uint32(uint32_t num);
 char* op_decode(byte_t op);
 
 
+/**
+* Returns base^power where both base and power are positive integers
+**/
+uint64_t power(uint32_t base, uint32_t power);
+
+
 /* debug print */
 #ifdef DEBUG
 #define dprintf(...) \
