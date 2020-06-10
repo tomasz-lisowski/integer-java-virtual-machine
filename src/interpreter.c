@@ -44,7 +44,7 @@ static inline void exec_op_ldc_w()
 
 static inline void exec_op_iload()
 {
-	uint32_t var_i;
+	uint16_t var_i;
 	if (next_op_wide)
 	{
 		var_i = get_arg_short();
@@ -59,7 +59,7 @@ static inline void exec_op_iload()
 
 static inline void exec_op_istore()
 {
-	uint32_t var_i;
+	uint16_t var_i;
 	if (next_op_wide)
 	{
 		var_i = get_arg_short();
@@ -199,8 +199,8 @@ static inline void exec_op_invokevirtual()
 	short offset = get_constant(get_arg_short()); // Move PC to return address while getting offset
 	int old_pc = g_cpu_ptr->pc;
 	g_cpu_ptr->pc = offset; // Move into method's memory
-	short num_args = get_arg_short();
-	short num_locals = get_arg_short();
+	uint16_t num_args = get_arg_short();
+	uint16_t num_locals = get_arg_short();
 
 	g_cpu_ptr->sp += num_locals;
 	stack_push(g_cpu_ptr->lv);

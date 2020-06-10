@@ -1,11 +1,17 @@
 #ifndef CPU_H
 #define CPU_H
 
+
+#include "stdlib.h"
+
+
 #include "types.h"
 #include "util.h"
 
+
 typedef struct CPU_t
 {
+    // All sizes in "number of elements" units
 	int const_mem_size;
 	int code_mem_size;
 	int stack_size;
@@ -14,9 +20,9 @@ typedef struct CPU_t
 	byte_t* code_mem;
 	word_t* stack;
 
-	int sp;
 	int pc;
-	int fp;
+	int sp;
+    int fp;
     int lv;
     int nv; // Number of vars in current frame (number of arguments + local variables)
 
@@ -49,6 +55,15 @@ bool stack_push(word_t e);
  * Returns top element of the stack and decreases stack pointer
  **/
 word_t stack_pop(void);
+
+
+/**
+ * Makes the stack 8 times larger
+ * Returns  true on success
+ *          false on failure
+ * Toggles the error flag if stack is resized beyond 4294967296
+ **/
+bool octuple_stack(void);
 
 
 /**

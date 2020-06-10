@@ -7,12 +7,6 @@ static CPU_t vm_cpu;
 CPU_t* restrict g_cpu_ptr = &vm_cpu;
 
 
-word_t get_constant(int i)
-{
-    return (g_cpu_ptr->const_mem)[i];
-}
-
-
 word_t tos(void)
 {
     return (g_cpu_ptr->stack)[g_cpu_ptr->sp];
@@ -23,9 +17,10 @@ bool stack_push(word_t e)
 {
     if (g_cpu_ptr->sp >= g_cpu_ptr->stack_size)
     {
-        // TODO: Call a stack resizing function instead of crashing
-        g_cpu_ptr->error_flag = true; // Stack overflow
-        return false;
+        if (octuple_stack() != true)
+        {
+            return false; // Resizing failed
+        }
     }
     (g_cpu_ptr->stack)[++g_cpu_ptr->sp] = e;
     return true;
@@ -43,6 +38,33 @@ word_t stack_pop(void)
 }
 
 
+bool octuple_stack(void)
+{
+    if (g_cpu_ptr->stack_size * 4 >= 4294967296)
+    {
+        g_cpu_ptr->error_flag = true; // Program needs more memory than is possible in IJVM
+        return false;
+    }
+
+    g_cpu_ptr->stack_size *= 8;
+    g_cpu_ptr->stack = (word_t*)realloc(g_cpu_ptr->stack, g_cpu_ptr->stack_size * 4);
+
+    if (g_cpu_ptr->stack == NULL)
+    {
+        g_cpu_ptr->error_flag = true; // Not enough memory
+        return false;
+    }
+
+    return true;
+}
+
+
+word_t get_constant(int i)
+{
+    return (g_cpu_ptr->const_mem)[i];
+}
+
+
 word_t get_local_variable(int i)
 {
     uint32_t offset = g_cpu_ptr->lv + i;
@@ -51,10 +73,7 @@ word_t get_local_variable(int i)
         g_cpu_ptr->error_flag = true; // Tried to access memory beyond variable memory
         return 0;
     }
-    else
-    {
-        return (g_cpu_ptr->stack)[offset];
-    }
+    return (g_cpu_ptr->stack)[offset];
 }
 
 
