@@ -7,7 +7,7 @@ static bool next_op_wide = false;
 /**
 * Get a one byte argument from code memory and increment PC
 **/
-static byte_t get_arg_byte()
+static inline byte_t get_arg_byte()
 {
 	return (g_cpu_ptr->code_mem)[g_cpu_ptr->pc++];
 }
@@ -16,7 +16,7 @@ static byte_t get_arg_byte()
 /**
 * Get a two byte argument from code memory and increment PC twice
 **/
-static short get_arg_short()
+static inline short get_arg_short()
 {
 	byte_t b1 = (g_cpu_ptr->code_mem)[g_cpu_ptr->pc++];
 	byte_t b2 = (g_cpu_ptr->code_mem)[g_cpu_ptr->pc++];
@@ -24,25 +24,25 @@ static short get_arg_short()
 }
 
 
-static void exec_op_nop()
+static inline void exec_op_nop()
 {}
 
 
-static void exec_op_bipush()
+static inline void exec_op_bipush()
 {
 	word_t arg = (word_t)((int8_t)get_arg_byte());
 	stack_push(arg);
 }
 
 
-static void exec_op_ldc_w()
+static inline void exec_op_ldc_w()
 {
 	short const_index = get_arg_short();
 	stack_push((g_cpu_ptr->const_mem)[const_index]);
 }
 
 
-static void exec_op_iload()
+static inline void exec_op_iload()
 {
 	uint32_t var_i;
 	if (next_op_wide)
@@ -57,7 +57,7 @@ static void exec_op_iload()
 }
 
 
-static void exec_op_istore()
+static inline void exec_op_istore()
 {
 	uint32_t var_i;
 	if (next_op_wide)
@@ -73,19 +73,19 @@ static void exec_op_istore()
 }
 
 
-static void exec_op_pop()
+static inline void exec_op_pop()
 {
 	g_cpu_ptr->sp -= 1; // TODO: Measure performance difference vs. calling stack_pop();
 }
 
 
-static void exec_op_dup()
+static inline void exec_op_dup()
 {
 	stack_push((g_cpu_ptr->stack)[g_cpu_ptr->sp]);
 }
 
 
-static void exec_op_swap()
+static inline void exec_op_swap()
 {
 	word_t b = stack_pop();
 	word_t a = stack_pop();
@@ -94,7 +94,7 @@ static void exec_op_swap()
 }
 
 
-static void exec_op_iadd()
+static inline void exec_op_iadd()
 {
 	word_t b = stack_pop();
 	word_t a = stack_pop();
@@ -102,7 +102,7 @@ static void exec_op_iadd()
 }
 
 
-static void exec_op_isub()
+static inline void exec_op_isub()
 {
 	word_t b = stack_pop();
 	word_t a = stack_pop();
@@ -110,7 +110,7 @@ static void exec_op_isub()
 }
 
 
-static void exec_op_iand()
+static inline void exec_op_iand()
 {
 	word_t b = stack_pop();
 	word_t a = stack_pop();
@@ -118,7 +118,7 @@ static void exec_op_iand()
 }
 
 
-static void exec_op_iinc()
+static inline void exec_op_iinc()
 {
 	uint32_t var_i;
 	if (next_op_wide)
@@ -134,7 +134,7 @@ static void exec_op_iinc()
 }
 
 
-static void exec_op_ifeq()
+static inline void exec_op_ifeq()
 {
 	short target = get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
 	if (stack_pop() == 0)
@@ -144,7 +144,7 @@ static void exec_op_ifeq()
 }
 
 
-static void exec_op_iflt()
+static inline void exec_op_iflt()
 {
 	short target = get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
 	if (stack_pop() < 0)
@@ -154,7 +154,7 @@ static void exec_op_iflt()
 }
 
 
-static void exec_op_icmpeq()
+static inline void exec_op_icmpeq()
 {
 	short target = get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
 	if (stack_pop() ==  stack_pop())
@@ -164,14 +164,14 @@ static void exec_op_icmpeq()
 }
 
 
-static void exec_op_goto()
+static inline void exec_op_goto()
 {
 	short target = get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
 	g_cpu_ptr->pc += target;
 }
 
 
-static void exec_op_ireturn()
+static inline void exec_op_ireturn()
 {
 	int ret_val = stack_pop();
 	int old_nv = g_cpu_ptr->nv;
@@ -186,7 +186,7 @@ static void exec_op_ireturn()
 }
 
 
-static void exec_op_ior()
+static inline void exec_op_ior()
 {
 	word_t b = stack_pop();
 	word_t a = stack_pop();
@@ -194,7 +194,7 @@ static void exec_op_ior()
 }
 
 
-static void exec_op_invokevirtual()
+static inline void exec_op_invokevirtual()
 {
 	short offset = get_constant(get_arg_short()); // Move PC to return address while getting offset
 	int old_pc = g_cpu_ptr->pc;
@@ -227,7 +227,7 @@ static void exec_op_invokevirtual()
 }
 
 
-static void exec_op_wide()
+static inline void exec_op_wide()
 {
 	next_op_wide = true;
 	step();
@@ -235,7 +235,7 @@ static void exec_op_wide()
 }
 
 
-static void exec_op_in()
+static inline void exec_op_in()
 {
 	word_t c = (word_t)getc(g_in_file);
 	if (c == EOF)
@@ -249,19 +249,19 @@ static void exec_op_in()
 }
 
 
-static void exec_op_out()
+static inline void exec_op_out()
 {
 	fprintf(g_out_file, "%c", (char)stack_pop());
 }
 
 
-static void exec_op_err()
+static inline void exec_op_err()
 {
 	g_cpu_ptr->error_flag = true;
 }
 
 
-static void exec_op_halt()
+static inline void exec_op_halt()
 {
 	g_cpu_ptr->halt_flag = true;
 }
