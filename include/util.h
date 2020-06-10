@@ -10,9 +10,6 @@
 #include "cpu.h"
 
 
-#define DEBUG // Enable debug info
-
-
 /**
 * Swap endianness
 **/
