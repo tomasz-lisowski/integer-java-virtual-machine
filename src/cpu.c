@@ -54,13 +54,19 @@ word_t get_local_variable(int i)
     {
         return (g_cpu_ptr->stack)[offset];
     }
-    return 0;
 }
 
 
 void update_local_variable(word_t new_val, int i)
 {
-
+    if (i >= g_cpu_ptr->nv)
+    {
+        g_cpu_ptr->error_flag = true; // Tried to access memory beyond variable memory
+    }
+    else
+    {
+        (g_cpu_ptr->stack)[g_cpu_ptr->lv + i] = new_val;
+    }
 }
 
 
@@ -150,6 +156,7 @@ void print_cpu_registers(bool compact)
         dprintf("  SP:%-4i", g_cpu_ptr->sp);
         dprintf("  FP:%-4i", g_cpu_ptr->fp);
         dprintf("  LV:%-4i", g_cpu_ptr->lv);
+        dprintf("  NV:%-4i", g_cpu_ptr->nv);
     }
     else
     {
@@ -158,6 +165,7 @@ void print_cpu_registers(bool compact)
         dprintf("\tSP: %i\n", g_cpu_ptr->sp);
         dprintf("\tFP: %i\n", g_cpu_ptr->fp);
         dprintf("\tLV: %i\n", g_cpu_ptr->lv);
+        dprintf("\tNV: %i\n", g_cpu_ptr->nv);
     }
 }
 

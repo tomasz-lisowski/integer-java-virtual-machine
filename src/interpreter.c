@@ -44,24 +44,32 @@ static void exec_op_ldc_w()
 
 static void exec_op_iload()
 {
-	//byte_t i = get_arg_byte();
-	//if (inside_method)
-	//{
-	//	word_t num_args = (g_cpu_ptr->stack)[g_cpu_ptr->fp + 3];
-	//	stack_push((g_cpu_ptr->stack)[g_cpu_ptr->fp - num_args + i - 1]);
-	//}
-	//else
-	//{
-	//	stack_push(get_local_variable(i));
-	//}
+	uint32_t var_i;
+	if (next_op_wide)
+	{
+		var_i = get_arg_short();
+	}
+	else
+	{
+		var_i = get_arg_byte();
+	}
+	stack_push(get_local_variable(var_i));
 }
 
 
 static void exec_op_istore()
 {
-	/*word_t val = stack_pop();
-	byte_t i = get_arg_byte();
-	update_local_variable(val, i);*/
+	uint32_t var_i;
+	if (next_op_wide)
+	{
+		var_i = get_arg_short();
+	}
+	else
+	{
+		var_i = get_arg_byte();
+	}
+	word_t val = stack_pop();
+	update_local_variable(val, var_i);
 }
 
 
@@ -112,17 +120,17 @@ static void exec_op_iand()
 
 static void exec_op_iinc()
 {
-	//byte_t var_i = get_arg_byte();
-	//int8_t c = (int8_t)get_arg_byte();
-	//if (inside_method)
-	//{
-	//	word_t num_args = (g_cpu_ptr->stack)[g_cpu_ptr->fp + 3];
-	//	(g_cpu_ptr->stack)[g_cpu_ptr->fp - num_args + var_i] = (g_cpu_ptr->stack)[g_cpu_ptr->fp - num_args + var_i] + c;
-	//}
-	//else
-	//{
-	//	update_local_variable(c + get_local_variable(var_i), var_i);
-	//}
+	uint32_t var_i;
+	if (next_op_wide)
+	{
+		var_i = get_arg_short();
+	}
+	else
+	{
+		var_i = get_arg_byte();
+	}
+	int8_t c = (int8_t)get_arg_byte();
+	update_local_variable(c + get_local_variable(var_i), var_i);
 }
 
 
@@ -165,20 +173,16 @@ static void exec_op_goto()
 
 static void exec_op_ireturn()
 {
-	//word_t ret_val = stack_pop();
-	//g_cpu_ptr->sp = g_cpu_ptr->fp + 3; // Point to num_args
-	//word_t num_args = stack_pop();
-	//g_cpu_ptr->pc = stack_pop();
-	//g_cpu_ptr->tlv = g_cpu_ptr->blv - 1;
-	//g_cpu_ptr->blv = stack_pop();
-	//g_cpu_ptr->fp = stack_pop();
-	//g_cpu_ptr->sp = g_cpu_ptr->sp - num_args; // Pop off all arguments
-	//stack_push(ret_val);
+	int ret_val = stack_pop();
+	int old_nv = g_cpu_ptr->nv;
 
-	//if (g_cpu_ptr->fp == 0)
-	//{
-	//	inside_method = false;
-	//}
+	g_cpu_ptr->sp = g_cpu_ptr->fp + 3;
+	g_cpu_ptr->pc = stack_pop();
+	g_cpu_ptr->fp = stack_pop();
+	g_cpu_ptr->nv = stack_pop();
+	g_cpu_ptr->lv = stack_pop();
+	g_cpu_ptr->sp -= old_nv; // Remove all local variables from stack
+	stack_push(ret_val);
 }
 
 
@@ -192,43 +196,42 @@ static void exec_op_ior()
 
 static void exec_op_invokevirtual()
 {
-	//short offset = get_constant(get_arg_short()); // Move PC to instruction after INVOKEVIRTUAL which is the RET_ADDR we want to save on stack
+	short offset = get_constant(get_arg_short()); // Move PC to return address while getting offset
+	int old_pc = g_cpu_ptr->pc;
+	g_cpu_ptr->pc = offset; // Move into method's memory
+	short num_args = get_arg_short();
+	short num_locals = get_arg_short();
 
-	//stack_push(g_cpu_ptr->fp);
-	//g_cpu_ptr->fp = g_cpu_ptr->sp;
-	//stack_push(g_cpu_ptr->blv);
-	//g_cpu_ptr->blv = g_cpu_ptr->tlv + 1;
-	//stack_push(g_cpu_ptr->pc);
-
-	//g_cpu_ptr->pc = offset; // Move into method's memory
-
-	//short num_args = get_arg_short() - 1; // Ignore OBJ_REF which is always an argument
-	//stack_push((word_t)num_args);
-
-	//short num_local_vars = get_arg_short();
-	//g_cpu_ptr->sp += num_local_vars;
+	g_cpu_ptr->sp += num_locals;
+	stack_push(g_cpu_ptr->lv);
+	stack_push(g_cpu_ptr->nv);
+	stack_push(g_cpu_ptr->fp);
+	stack_push(old_pc);
+	
+	g_cpu_ptr->fp = g_cpu_ptr->sp - 3;
+	g_cpu_ptr->nv = num_args + num_locals;
+	g_cpu_ptr->lv = g_cpu_ptr->fp - g_cpu_ptr->nv;
 
 	/**
-	* Stack looks like:
-	*   fp+5: local var 2  <- sp
-	*   fp+4: local var 1
-	*   fp+3: num_args
-	*   fp+2: old_pc
-	*   fp+1: old_blv
-	*   fp+0: old_fp       <- fp
-	*   fp-1: arg_2
-	*   fp-2: arg_1
+	* Stack after call:
+	*   
+	*   fp+3: old_pc    <- sp
+	*   fp+2: old_fp
+	*   fp+1: old_nv
+	*   fp+0: old_lv    <- fp
+	*   lv+3: local 2
+	*   lv+2: local 1
+	*   lv+1: arg_2
+	*   lv+0: arg_1     <- lv
 	**/
-	//inside_method = true;
 }
 
 
 static void exec_op_wide()
 {
-	// Supported by iinc, istore, iload
-	/*next_op_wide = true;
+	next_op_wide = true;
 	step();
-	next_op_wide = false;*/
+	next_op_wide = false;
 }
 
 
