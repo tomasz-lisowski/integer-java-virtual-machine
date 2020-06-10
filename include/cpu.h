@@ -78,8 +78,7 @@ void print_cpu_mem_size(bool compact);
 void print_cpu_const_mem(bool compact);
 void print_cpu_code_mem(bool compact);
 void print_cpu_registers(bool compact);
-void print_cpu_stack(bool compact);
-void print_cpu_local_vars(bool compact);
-void print_cpu_local_vars_current_frame(bool compact);
+void print_cpu_stack(bool compact); // For current frame
+void print_cpu_local_vars(bool compact); // For current frame
 
 #endif

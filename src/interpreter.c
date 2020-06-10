@@ -4,21 +4,40 @@
 static bool next_op_wide = false;
 
 
+/**
+* Get a one byte argument from code memory and increment PC
+**/
+static byte_t get_arg_byte()
+{
+	return (g_cpu_ptr->code_mem)[g_cpu_ptr->pc++];
+}
+
+
+/**
+* Get a two byte argument from code memory and increment PC twice
+**/
+static short get_arg_short()
+{
+	byte_t b1 = (g_cpu_ptr->code_mem)[g_cpu_ptr->pc++];
+	byte_t b2 = (g_cpu_ptr->code_mem)[g_cpu_ptr->pc++];
+	return (b1 << 8) | b2;
+}
+
+
 static void exec_op_nop()
 {}
 
 
 static void exec_op_bipush()
 {
-	word_t arg = (word_t)((int8_t)get_arg_byte(g_cpu_ptr->pc++));
+	word_t arg = (word_t)((int8_t)get_arg_byte());
 	stack_push(arg);
 }
 
 
 static void exec_op_ldc_w()
 {
-	short const_index = get_arg_short(g_cpu_ptr->pc);
-	g_cpu_ptr->pc += 2;
+	short const_index = get_arg_short();
 	stack_push((g_cpu_ptr->const_mem)[const_index]);
 }
 
@@ -109,8 +128,7 @@ static void exec_op_iinc()
 
 static void exec_op_ifeq()
 {
-	short target = get_arg_short(g_cpu_ptr->pc) - 3; // -3 to get offset from instruction call not address of last argument byte
-	g_cpu_ptr->pc += 2;
+	short target = get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
 	if (stack_pop() == 0)
 	{
 		g_cpu_ptr->pc += target;
@@ -120,8 +138,7 @@ static void exec_op_ifeq()
 
 static void exec_op_iflt()
 {
-	short target = get_arg_short(g_cpu_ptr->pc) - 3; // -3 to get offset from instruction call not address of last argument byte
-	g_cpu_ptr->pc += 2;
+	short target = get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
 	if (stack_pop() < 0)
 	{
 		g_cpu_ptr->pc += target;
@@ -131,8 +148,7 @@ static void exec_op_iflt()
 
 static void exec_op_icmpeq()
 {
-	short target = get_arg_short(g_cpu_ptr->pc) - 3; // -3 to get offset from instruction call not address of last argument byte
-	g_cpu_ptr->pc += 2;
+	short target = get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
 	if (stack_pop() ==  stack_pop())
 	{
 		g_cpu_ptr->pc += target;
@@ -142,8 +158,7 @@ static void exec_op_icmpeq()
 
 static void exec_op_goto()
 {
-	short target = get_arg_short(g_cpu_ptr->pc) - 3; // -3 to get offset from instruction call not address of last argument byte
-	g_cpu_ptr->pc += 2;
+	short target = get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
 	g_cpu_ptr->pc += target;
 }
 
@@ -355,7 +370,7 @@ bool step(void)
 	dprintf(" ");
 	print_cpu_stack(true);
 	dprintf("\t");
-	print_cpu_local_vars_current_frame(true);
+	print_cpu_local_vars(true);
 	dprintf("\n");
 #endif
 

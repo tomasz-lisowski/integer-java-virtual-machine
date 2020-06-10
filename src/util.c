@@ -87,17 +87,3 @@ char* op_decode(byte_t op)
 		return "NULL";
 	}
 }
-
-
-byte_t get_arg_byte(int i)
-{
-	return (g_cpu_ptr->code_mem)[i];
-}
-
-
-short get_arg_short(int i)
-{
-	byte_t b1 = (g_cpu_ptr->code_mem)[i];
-	byte_t b2 = (g_cpu_ptr->code_mem)[i + 1];
-	return (b1 << 8) | b2;
-}

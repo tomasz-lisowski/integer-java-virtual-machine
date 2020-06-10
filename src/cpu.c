@@ -33,7 +33,7 @@ bool stack_push(word_t e)
 
 word_t stack_pop(void)
 {
-    if (g_cpu_ptr->sp < 0)
+    if (g_cpu_ptr->sp < g_cpu_ptr->lv)
     {
         g_cpu_ptr->error_flag = true; // Could not pop since stack is empty
         return 0;
@@ -44,16 +44,16 @@ word_t stack_pop(void)
 
 word_t get_local_variable(int i)
 {
-    //uint32_t offset = g_cpu_ptr->lv + i;
-    //if (offset > g_cpu_ptr->nv)
-    //{
-    //    g_cpu_ptr->error_flag = true; // Tried to access memory beyond variable memory
-    //    return 0;
-    //}
-    //else
-    //{
-    //    return (g_cpu_ptr->stack)[offset];
-    //}
+    uint32_t offset = g_cpu_ptr->lv + i;
+    if (i >= g_cpu_ptr->nv)
+    {
+        g_cpu_ptr->error_flag = true; // Tried to access memory beyond variable memory
+        return 0;
+    }
+    else
+    {
+        return (g_cpu_ptr->stack)[offset];
+    }
     return 0;
 }
 
@@ -167,7 +167,7 @@ void print_cpu_stack(bool compact)
     if (compact)
     {
         dprintf("S[");
-        for (int i = 0; i <= g_cpu_ptr->sp; i++)
+        for (int64_t i = g_cpu_ptr->fp; i <= g_cpu_ptr->sp; i++)
         {
             dprintf(" %i", (g_cpu_ptr->stack)[i]);
         }
@@ -176,7 +176,7 @@ void print_cpu_stack(bool compact)
     else
     {
         dprintf("Stack\n");
-        for (int i = 0; i <= g_cpu_ptr->sp; i++)
+        for (int64_t i = g_cpu_ptr->fp; i <= g_cpu_ptr->sp; i++)
         {
             dprintf("\t%i\n", (g_cpu_ptr->stack)[i]);
         }
@@ -189,28 +189,18 @@ void print_cpu_local_vars(bool compact)
     if (compact)
     {
         dprintf("LV[");
-
+        for (int64_t i = g_cpu_ptr->lv; i < g_cpu_ptr->lv + g_cpu_ptr->nv; i++)
+        {
+            dprintf(" %i", (g_cpu_ptr->stack)[i]);
+        }
         dprintf(" ]");
     }
     else
     {
         dprintf("LV\n");
-
-    }
-}
-
-
-void print_cpu_local_vars_current_frame(bool compact)
-{
-    if (compact)
-    {
-        dprintf("LV[");
-
-        dprintf(" ]");
-    }
-    else
-    {
-        dprintf("LV\n");
-
+        for (int64_t i = g_cpu_ptr->lv; i < g_cpu_ptr->lv + g_cpu_ptr->nv; i++)
+        {
+            dprintf("\t%i\n", (g_cpu_ptr->stack)[i]);
+        }
     }
 }

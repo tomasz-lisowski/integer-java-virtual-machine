@@ -1,9 +1,30 @@
 #include "init.h"
 
+
+/**
+* Returns the i'th byte from code memory
+**/
+static byte_t get_arg_byte(int i)
+{
+	return (g_cpu_ptr->code_mem)[i];
+}
+
+
+/**
+* Returns a short starting at i'th byte from code memory
+**/
+static short get_arg_short(int i)
+{
+	byte_t b1 = (g_cpu_ptr->code_mem)[i];
+	byte_t b2 = (g_cpu_ptr->code_mem)[i + 1];
+	return (b1 << 8) | b2;
+}
+
+
 /**
 * Returns the number of local variables inside the main method
 **/
-static void get_num_local_vars_main()
+static uint32_t get_num_local_vars_main()
 {
 	uint32_t addr_first_method_after_main = (~(uint32_t)0); // = SIZE_MAX
 	int64_t greatest_var_index = -1;
@@ -12,7 +33,12 @@ static void get_num_local_vars_main()
 	byte_t op;
 	bool next_wide = false;
 	uint32_t var_index;
+	uint32_t addr;
 
+	/**
+	* Simultaneously find where first method (after main) starts
+	* and determine the number of referenced variables inside main.
+	**/ 
 	for (uint32_t i = 0; i < g_cpu_ptr->code_mem_size; i++)
 	{
 		op = (g_cpu_ptr->code_mem)[i];
@@ -23,27 +49,33 @@ static void get_num_local_vars_main()
 			break;
 		}
 
-		if (op == OP_WIDE)
+		switch (op)
 		{
+		case OP_WIDE:
 			next_wide = true;
-			dprintf("next wide\n");
 			continue;
-		}
 
-		// Store the maximum referenced index
-		if (op == OP_ISTORE || op == OP_ILOAD || op == OP_IINC)
-		{
+		case OP_INVOKEVIRTUAL:
+			addr = get_arg_short(i + 1);
+			if (addr < addr_first_method_after_main)
+			{
+				addr_first_method_after_main = addr;
+			}
+			i += 2;
+			continue;
+
+		case OP_ISTORE:
+		case OP_ILOAD:
+		case OP_IINC:
 			if (next_wide)
 			{
 				var_index = get_arg_short(i + 1);
-				//dprintf("wide var index %i\n", var_index);
-				i += 2;
 				next_wide = false;
+				i += 2;
 			}
 			else
 			{
 				var_index = get_arg_byte(i + 1);
-				//dprintf("[%s] var index %i\n", op_decode(op), var_index);
 				i += 1;
 			}
 
@@ -57,38 +89,22 @@ static void get_num_local_vars_main()
 				greatest_var_index = var_index;
 			}
 			continue;
-		}
 
-		if (op == OP_INVOKEVIRTUAL)
-		{
-			uint32_t addr = get_arg_short(i + 1);
-			//dprintf("[INV] %u\n", addr);
-			if (addr < addr_first_method_after_main)
-			{
-				addr_first_method_after_main = addr;
-			}
-			i += 2;
-			continue;
-		}
-
-		// Skip over other instructions + arguments
-		switch (op)
-		{
 		case OP_BIPUSH:
 			i += 1;
 			continue;
+
 		case OP_GOTO:
 		case OP_IFEQ:
 		case OP_IFLT:
 		case OP_ICMPEQ:
-		case OP_IINC:
 		case OP_LDC_W:
 			i += 2;
 			continue;
 		}
 	}
 
-	dprintf("number of local variables %li\n", greatest_var_index + 1);
+	return (uint32_t)greatest_var_index + 1;
 }
 
 
@@ -97,22 +113,24 @@ static void get_num_local_vars_main()
 **/
 static void init_stack()
 {
-	// TODO: Analyze number of local variables in main function to pre-allocate a local var memory on stack before main's operand stack
 	g_cpu_ptr->stack_size = STACK_SIZE;
 	g_cpu_ptr->stack = (word_t*)malloc(sizeof(word_t) * g_cpu_ptr->stack_size);
+
+	// Pre-allocate local variable memory before the operand stack of main
+	uint32_t main_num_vars = get_num_local_vars_main();
+	g_cpu_ptr->sp = main_num_vars - 1;
+	g_cpu_ptr->lv = 0;
+	g_cpu_ptr->nv = main_num_vars;
+	g_cpu_ptr->fp = main_num_vars;
 }
 
 
 /**
-* Init CPU registers
+* Init CPU registers that are not part of managing the stack
 **/
 static void init_registers()
 {
 	g_cpu_ptr->pc = 0;
-	g_cpu_ptr->fp = 0;
-	g_cpu_ptr->sp = -1;
-	g_cpu_ptr->lv = -1;
-	g_cpu_ptr->nv = 0;
 }
 
 
@@ -137,12 +155,11 @@ int init_ijvm(char* binary_path)
 	init_registers();
 	init_stack();
 	init_cpu_flags();
-	// At this point the CPU memory is well defined
 
 	set_output(stdout);
 	set_input(stdin);
+	// At this point the CPU memory is well defined
 
-	//get_num_local_vars_main();
 	return 0;
 }
 
