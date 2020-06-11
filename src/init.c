@@ -17,7 +17,7 @@ static short get_arg_short(int i)
 {
 	byte_t b1 = (g_cpu_ptr->code_mem)[i];
 	byte_t b2 = (g_cpu_ptr->code_mem)[i + 1];
-	return (b1 << 8) | b2;
+	return (short)((b1 << 8) | b2);
 }
 
 
@@ -40,7 +40,7 @@ static uint32_t get_num_local_vars_main()
 	* and determine the number of referenced variables inside main.
 	* "Loop Jamming"
 	**/ 
-	for (uint32_t i = 0; i < g_cpu_ptr->code_mem_size; i++)
+	for (uint32_t i = 0; (int)i < g_cpu_ptr->code_mem_size; i++)
 	{
 		op = (g_cpu_ptr->code_mem)[i];
 
@@ -57,7 +57,7 @@ static uint32_t get_num_local_vars_main()
 			continue;
 
 		case OP_INVOKEVIRTUAL:
-			addr = get_arg_short(i + 1);
+			addr = (uint32_t)get_arg_short((int)i + 1);
 			if (addr < addr_first_method_after_main)
 			{
 				addr_first_method_after_main = addr;
@@ -70,13 +70,13 @@ static uint32_t get_num_local_vars_main()
 		case OP_IINC:
 			if (next_wide)
 			{
-				var_index = get_arg_short(i + 1);
+				var_index = (uint32_t)get_arg_short((int)i + 1);
 				next_wide = false;
 				i += 2;
 			}
 			else
 			{
-				var_index = get_arg_byte(i + 1);
+				var_index = (uint32_t)get_arg_byte((int)i + 1);
 				i += 1;
 			}
 
@@ -122,17 +122,17 @@ static void init_stack()
 		// Find smallest suitable stack size 
 		if ((main_num_vars * sizeof(word_t)) + 1024 <= (4096 * sizeof(word_t)) * power(8, i)) // 1024 is an arbitrary margin for operands
 		{
-			g_cpu_ptr->stack_size = 4096 * power(8, i);
+			g_cpu_ptr->stack_size = (int)(4096 * power(8, i));
 			break;
 		}
 	}
-	g_cpu_ptr->stack = (word_t*)malloc(sizeof(word_t) * g_cpu_ptr->stack_size);
+	g_cpu_ptr->stack = (word_t*)malloc((uint32_t)g_cpu_ptr->stack_size * sizeof(word_t));
 
 	// Pre-allocate local variable memory before the operand stack of main
-	g_cpu_ptr->sp = main_num_vars - 1;
+	g_cpu_ptr->sp = (int)(main_num_vars) - 1;
 	g_cpu_ptr->lv = 0;
-	g_cpu_ptr->nv = main_num_vars;
-	g_cpu_ptr->fp = main_num_vars;
+	g_cpu_ptr->nv = (int)(main_num_vars);
+	g_cpu_ptr->fp = (int)(main_num_vars);
 }
 
 

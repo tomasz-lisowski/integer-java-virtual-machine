@@ -1,7 +1,9 @@
 #include "cpu.h"
 
+
 FILE* restrict g_out_file;
 FILE* restrict g_in_file;
+
 
 static CPU_t vm_cpu;
 CPU_t* restrict g_cpu_ptr = &vm_cpu;
@@ -49,14 +51,14 @@ word_t stack_pop(void)
 
 bool octuple_stack_size(void)
 {
-    if (g_cpu_ptr->stack_size * 4 >= 4294967296)
+    if ((uint64_t)(g_cpu_ptr->stack_size * 4) >= 4294967296)
     {
         g_cpu_ptr->error_flag = true; // Program needs more memory than is possible in IJVM
         return false;
     }
 
     g_cpu_ptr->stack_size *= 8;
-    g_cpu_ptr->stack = (word_t*)realloc(g_cpu_ptr->stack, g_cpu_ptr->stack_size * 4);
+    g_cpu_ptr->stack = (word_t*)realloc(g_cpu_ptr->stack, (uint32_t)g_cpu_ptr->stack_size * sizeof(word_t));
 
     if (g_cpu_ptr->stack == NULL)
     {
@@ -76,7 +78,7 @@ word_t get_constant(int i)
 
 word_t get_local_variable(int i)
 {
-    uint32_t offset = g_cpu_ptr->lv + i;
+    uint32_t offset = (uint32_t)(g_cpu_ptr->lv + i);
     if (i >= g_cpu_ptr->nv)
     {
         g_cpu_ptr->error_flag = true; // Tried to access memory beyond variable memory
@@ -139,7 +141,7 @@ void print_cpu_const_mem(bool compact)
     if (compact)
     {
         dprintf("Consts [");
-        for (unsigned int i = 0; i < g_cpu_ptr->const_mem_size / sizeof(word_t); i++)
+        for (uint32_t i = 0; i < (uint32_t)g_cpu_ptr->const_mem_size / sizeof(word_t); i++)
         {
             dprintf(" %i", (g_cpu_ptr->const_mem)[i]);
         }
@@ -148,7 +150,7 @@ void print_cpu_const_mem(bool compact)
     else
     {
         dprintf("Consts\n");
-        for (unsigned int i = 0; i < g_cpu_ptr->const_mem_size / sizeof(word_t); i++)
+        for (uint32_t i = 0; i < (uint32_t)g_cpu_ptr->const_mem_size / sizeof(word_t); i++)
         {
             dprintf("\t%i\n", (g_cpu_ptr->const_mem)[i]);
         }
@@ -161,7 +163,7 @@ void print_cpu_code_mem(bool compact)
     if (compact)
     {
         dprintf("OP [");
-        for (unsigned int i = 0; i < g_cpu_ptr->code_mem_size / sizeof(byte_t); i++)
+        for (uint32_t i = 0; i < (uint32_t)g_cpu_ptr->code_mem_size / sizeof(byte_t); i++)
         {
             dprintf(" 0x%X", (g_cpu_ptr->code_mem)[i]);
         }
@@ -170,7 +172,7 @@ void print_cpu_code_mem(bool compact)
     else
     {
         dprintf("OPs\n");
-        for (unsigned int i = 0; i < g_cpu_ptr->code_mem_size / sizeof(byte_t); i++)
+        for (uint32_t i = 0; i < (uint32_t)g_cpu_ptr->code_mem_size / sizeof(byte_t); i++)
         {
             dprintf("\t0x%X\n", (g_cpu_ptr->code_mem)[i]);
         }
@@ -205,7 +207,7 @@ void print_cpu_stack(bool compact)
     if (compact)
     {
         dprintf("S[");
-        for (int64_t i = g_cpu_ptr->fp; i <= g_cpu_ptr->sp; i++)
+        for (int64_t i = (uint32_t)g_cpu_ptr->fp; i <= g_cpu_ptr->sp; i++)
         {
             dprintf(" %i", (g_cpu_ptr->stack)[i]);
         }
@@ -214,7 +216,7 @@ void print_cpu_stack(bool compact)
     else
     {
         dprintf("Stack\n");
-        for (int64_t i = g_cpu_ptr->fp; i <= g_cpu_ptr->sp; i++)
+        for (int64_t i = (uint32_t)g_cpu_ptr->fp; i <= g_cpu_ptr->sp; i++)
         {
             dprintf("\t%i\n", (g_cpu_ptr->stack)[i]);
         }
@@ -227,7 +229,7 @@ void print_cpu_local_vars(bool compact)
     if (compact)
     {
         dprintf("LV[");
-        for (int64_t i = g_cpu_ptr->lv; i < g_cpu_ptr->lv + g_cpu_ptr->nv; i++)
+        for (uint32_t i = (uint32_t)g_cpu_ptr->lv; i < (uint32_t)(g_cpu_ptr->lv + g_cpu_ptr->nv); i++)
         {
             dprintf(" %i", (g_cpu_ptr->stack)[i]);
         }
@@ -236,7 +238,7 @@ void print_cpu_local_vars(bool compact)
     else
     {
         dprintf("LV\n");
-        for (int64_t i = g_cpu_ptr->lv; i < g_cpu_ptr->lv + g_cpu_ptr->nv; i++)
+        for (uint32_t i = (uint32_t)g_cpu_ptr->lv; i < (uint32_t)(g_cpu_ptr->lv + g_cpu_ptr->nv); i++)
         {
             dprintf("\t%i\n", (g_cpu_ptr->stack)[i]);
         }

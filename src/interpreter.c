@@ -20,7 +20,7 @@ static inline short get_arg_short()
 {
 	byte_t b1 = (g_cpu_ptr->code_mem)[g_cpu_ptr->pc++];
 	byte_t b2 = (g_cpu_ptr->code_mem)[g_cpu_ptr->pc++];
-	return (b1 << 8) | b2;
+	return (short)((b1 << 8) | b2);
 }
 
 
@@ -30,14 +30,14 @@ static inline void exec_op_nop()
 
 static inline void exec_op_bipush()
 {
-	word_t arg = (word_t)((int8_t)get_arg_byte());
+	word_t arg = (int8_t)get_arg_byte();
 	stack_push(arg);
 }
 
 
 static inline void exec_op_ldc_w()
 {
-	short const_index = get_arg_short();
+	uint16_t const_index = (uint16_t)get_arg_short();
 	stack_push((g_cpu_ptr->const_mem)[const_index]);
 }
 
@@ -47,11 +47,11 @@ static inline void exec_op_iload()
 	uint16_t var_i;
 	if (next_op_wide)
 	{
-		var_i = get_arg_short();
+		var_i = (uint16_t)get_arg_short();
 	}
 	else
 	{
-		var_i = get_arg_byte();
+		var_i = (uint16_t)get_arg_byte();
 	}
 	stack_push(get_local_variable(var_i));
 }
@@ -62,11 +62,11 @@ static inline void exec_op_istore()
 	uint16_t var_i;
 	if (next_op_wide)
 	{
-		var_i = get_arg_short();
+		var_i = (uint16_t)get_arg_short();
 	}
 	else
 	{
-		var_i = get_arg_byte();
+		var_i = (uint16_t)get_arg_byte();
 	}
 	word_t val = stack_pop();
 	update_local_variable(val, var_i);
@@ -96,9 +96,9 @@ static inline void exec_op_swap()
 
 static inline void exec_op_iadd()
 {
-	word_t b = stack_pop();
-	word_t a = stack_pop();
-	stack_push(a + b);
+	int64_t b = stack_pop();
+	int64_t a = stack_pop();
+	stack_push((word_t)(a + b));
 }
 
 
@@ -120,60 +120,61 @@ static inline void exec_op_iand()
 
 static inline void exec_op_iinc()
 {
-	uint32_t var_i;
+	uint16_t var_i;
+	int8_t c;
 	if (next_op_wide)
 	{
-		var_i = get_arg_short();
+		var_i = (uint16_t)get_arg_short();
 	}
 	else
 	{
-		var_i = get_arg_byte();
+		var_i = (uint16_t)get_arg_byte();
 	}
-	int8_t c = (int8_t)get_arg_byte();
+	c = (int8_t)get_arg_byte();
 	update_local_variable(c + get_local_variable(var_i), var_i);
 }
 
 
 static inline void exec_op_ifeq()
 {
-	short target = get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
+	uint32_t target = (uint32_t)get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
 	if (stack_pop() == 0)
 	{
-		g_cpu_ptr->pc += target;
+		g_cpu_ptr->pc += (int)target;
 	}
 }
 
 
 static inline void exec_op_iflt()
 {
-	short target = get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
+	uint32_t target = (uint32_t)get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
 	if (stack_pop() < 0)
 	{
-		g_cpu_ptr->pc += target;
+		g_cpu_ptr->pc += (int)target;
 	}
 }
 
 
 static inline void exec_op_icmpeq()
 {
-	short target = get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
+	uint32_t target = (uint32_t)get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
 	if (stack_pop() ==  stack_pop())
 	{
-		g_cpu_ptr->pc += target;
+		g_cpu_ptr->pc += (int)target;
 	}
 }
 
 
 static inline void exec_op_goto()
 {
-	short target = get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
-	g_cpu_ptr->pc += target;
+	uint32_t target = (uint32_t)get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
+	g_cpu_ptr->pc += (int)target;
 }
 
 
 static inline void exec_op_ireturn()
 {
-	int ret_val = stack_pop();
+	word_t ret_val = stack_pop();
 	int old_nv = g_cpu_ptr->nv;
 
 	g_cpu_ptr->sp = g_cpu_ptr->fp + 3;
@@ -196,11 +197,14 @@ static inline void exec_op_ior()
 
 static inline void exec_op_invokevirtual()
 {
-	short offset = get_constant(get_arg_short()); // Move PC to return address while getting offset
+	word_t offset = get_constant(get_arg_short()); // Move PC to return address while getting offset
 	int old_pc = g_cpu_ptr->pc;
+	uint16_t num_args, num_locals;
+
 	g_cpu_ptr->pc = offset; // Move into method's memory
-	uint16_t num_args = get_arg_short();
-	uint16_t num_locals = get_arg_short();
+	num_args = (uint16_t)get_arg_short();
+	num_locals = (uint16_t)get_arg_short();
+
 
 	g_cpu_ptr->sp += num_locals;
 	stack_push(g_cpu_ptr->lv);
@@ -237,7 +241,7 @@ static inline void exec_op_wide()
 
 static inline void exec_op_in()
 {
-	word_t c = (word_t)getc(g_in_file);
+	word_t c = getc(g_in_file);
 	if (c == EOF)
 	{
 		stack_push(0);

@@ -12,7 +12,7 @@ static uint32_t MAGIC_NUMBER = 0x1DEADFAD;
 * Returns  1 on good magic number
 *          0 on bad magic number
 **/
-static bool check_file_signature(word_t magic_number)
+static bool check_file_signature(uint32_t magic_number)
 {
     if (swap_uint32(magic_number) != MAGIC_NUMBER)
     {
@@ -40,8 +40,9 @@ static bool load_consts(FILE* f)
 
     fread(&(g_cpu_ptr->const_mem_size), sizeof(g_cpu_ptr->const_mem_size), 1, f);
     g_cpu_ptr->const_mem_size = swap_uint32(g_cpu_ptr->const_mem_size);
+    g_cpu_ptr->const_mem_size = (int)swap_uint32((uint32_t)g_cpu_ptr->const_mem_size);
 
-    g_cpu_ptr->const_mem = (word_t*)malloc(g_cpu_ptr->const_mem_size * sizeof(word_t));
+    g_cpu_ptr->const_mem = (word_t*)malloc((uint32_t)g_cpu_ptr->const_mem_size * sizeof(word_t));
     if (g_cpu_ptr->const_mem == NULL)
     {
         return false;
