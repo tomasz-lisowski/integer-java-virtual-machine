@@ -24,7 +24,7 @@ static short get_arg_short(int i)
 /**
 * Returns the number of local variables inside the main method
 **/
-static uint32_t get_num_local_vars_main()
+static uint32_t get_num_local_vars_main(void)
 {
 	uint32_t addr_first_method_after_main = (~(uint32_t)0); // = SIZE_MAX
 	uint32_t var_num = 0;
@@ -112,7 +112,7 @@ static uint32_t get_num_local_vars_main()
 /**
 * Use machine config (config.h) to init the CPU stack
 **/
-static void init_stack()
+static void init_stack(void)
 {
 	uint32_t main_num_vars = get_num_local_vars_main();
 
@@ -139,7 +139,7 @@ static void init_stack()
 /**
 * Init CPU registers that are not used to manage the stack
 **/
-static void init_registers()
+static void init_registers(void)
 {
 	g_cpu_ptr->pc = 0;
 }
@@ -148,7 +148,7 @@ static void init_registers()
 /**
 * Init CPU flags
 **/
-static void init_cpu_flags()
+static void init_cpu_flags(void)
 {
 	g_cpu_ptr->error_flag = false;
 	g_cpu_ptr->halt_flag = false;

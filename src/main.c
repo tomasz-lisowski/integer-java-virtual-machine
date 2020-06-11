@@ -7,7 +7,7 @@
 #include "util.h"
 
 
-clock_t start, end;
+static void print_help(void)
 double cpu_time_used;
 
 
