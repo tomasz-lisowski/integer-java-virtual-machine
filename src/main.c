@@ -8,17 +8,17 @@
 
 
 static void print_help(void)
-double cpu_time_used;
-
-
-void print_help()
 {
     printf("Usage: ./ijvm binary \n");
 }
 
+
 int main(int argc, char** argv)
 {
+    clock_t start, end;
+    double cpu_time_used;
     start = clock();
+
     if (argc < 2)
     {
         print_help();
@@ -38,5 +38,6 @@ int main(int argc, char** argv)
     end = clock();
     cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
     fprintf(stderr, "[Took %f seconds]\n", cpu_time_used);
+    
     return 0;
 }
