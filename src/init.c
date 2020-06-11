@@ -27,7 +27,7 @@ static short get_arg_short(int i)
 static uint32_t get_num_local_vars_main()
 {
 	uint32_t addr_first_method_after_main = (~(uint32_t)0); // = SIZE_MAX
-	int64_t greatest_var_index = -1;
+	uint32_t var_num = 0;
 
 	// Temporary variables to keep track of loop state
 	byte_t op;
@@ -85,9 +85,9 @@ static uint32_t get_num_local_vars_main()
 				i += 1;
 			}
 
-			if (var_index > greatest_var_index)
+			if (var_index + 1 > var_num)
 			{
-				greatest_var_index = var_index;
+				var_num = var_index + 1;
 			}
 			continue;
 
@@ -105,7 +105,7 @@ static uint32_t get_num_local_vars_main()
 		}
 	}
 
-	return (uint32_t)greatest_var_index + 1;
+	return var_num;
 }
 
 
