@@ -37,51 +37,49 @@ extern FILE* restrict g_in_file;
 
 
 /**
- * This function should return the word at the top of the stack of the current
- * frame, interpreted as a signed integer.
- **/
+* Return the word at the top of the stack
+**/
 word_t tos(void);
 
 
 /**
- * Pushes element on top of stack
- * Returns  1 on success
- *          0 on failure
- **/
+* Pushes element on top of stack
+* Returns  1 on success
+*          0 on failure
+**/
 bool stack_push(word_t e);
 
 
 /**
- * Returns top element of the stack and decreases stack pointer
- **/
+* Returns top element of the stack and decreases stack pointer
+**/
 word_t stack_pop(void);
 
 
 /**
- * Makes the stack 8 times larger
- * Returns  true on success
- *          false on failure
- * Toggles the error flag if stack is resized beyond 4294967296
- **/
+* Makes the stack 8 times larger
+* Returns  true on success
+*          false on failure
+* Toggles the error flag if stack is resized beyond 4294967296
+**/
 bool octuple_stack_size(void);
 
 
 /**
- * Returns the i'th constant from constant memory
- **/
+* Returns the i'th constant from constant memory
+**/
 word_t get_constant(int i);
 
 
 /**
- * @param i, index of variable to obtain.
- * @return Returns the i:th local variable of the current frame.
- **/
+* Return the i'th variable in the current frame
+**/
 word_t get_local_variable(int i);
 
 
 /**
- * Update the value of i'th local variable in current frame (or create one if it does not exist)
- **/
+* Update the value of i'th local variable in current frame (or create one if it does not exist)
+**/
 void update_local_variable(word_t new_val, int i);
 
 

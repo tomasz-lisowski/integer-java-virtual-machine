@@ -38,6 +38,7 @@ static uint32_t get_num_local_vars_main()
 	/**
 	* Simultaneously find where first method (after main) starts
 	* and determine the number of referenced variables inside main.
+	* "Loop Jamming"
 	**/ 
 	for (uint32_t i = 0; i < g_cpu_ptr->code_mem_size; i++)
 	{
@@ -136,7 +137,7 @@ static void init_stack()
 
 
 /**
-* Init CPU registers that are not part of managing the stack
+* Init CPU registers that are not used to manage the stack
 **/
 static void init_registers()
 {
@@ -161,7 +162,6 @@ int init_ijvm(char* binary_path)
 		destroy_ijvm(); // Ensure memory is free'd
 		return -1;
 	}
-
 
 	init_registers();
 	init_stack();

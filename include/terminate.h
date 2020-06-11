@@ -6,9 +6,9 @@
 #include "cpu.h"
 
 /**
- * Destroys a vm, that is to say, free all memory associated with the machine
- * and allow for a new call to init_ijvm().
- */
+* Destroys a vm, that is to say, free all memory associated with the machine
+* and allow for a new call to init_ijvm().
+*/
 void destroy_ijvm(void);
 
 #endif
