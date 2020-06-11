@@ -33,13 +33,22 @@ static bool check_file_signature(uint32_t magic_number)
 **/
 static bool load_consts(FILE* f)
 {
+    size_t num_elements_read;
+
     uint32_t const_pool_origin;
-    fread(&(const_pool_origin), sizeof(const_pool_origin), 1, f);
+    num_elements_read = fread(&(const_pool_origin), sizeof(const_pool_origin), 1, f);
+    if (num_elements_read != 1)
+    {
+        return false;
+    }
     const_pool_origin = swap_uint32(const_pool_origin);
 
 
-    fread(&(g_cpu_ptr->const_mem_size), sizeof(g_cpu_ptr->const_mem_size), 1, f);
-    g_cpu_ptr->const_mem_size = swap_uint32(g_cpu_ptr->const_mem_size);
+    num_elements_read = fread(&(g_cpu_ptr->const_mem_size), sizeof(g_cpu_ptr->const_mem_size), 1, f);
+    if (num_elements_read != 1)
+    {
+        return false;
+    }
     g_cpu_ptr->const_mem_size = (int)swap_uint32((uint32_t)g_cpu_ptr->const_mem_size);
 
     g_cpu_ptr->const_mem = (word_t*)malloc((uint32_t)g_cpu_ptr->const_mem_size * sizeof(word_t));
@@ -47,10 +56,14 @@ static bool load_consts(FILE* f)
     {
         return false;
     }
-    fread(g_cpu_ptr->const_mem, sizeof(word_t), g_cpu_ptr->const_mem_size / sizeof(word_t), f);
-    for (unsigned int i = 0; i < g_cpu_ptr->const_mem_size / sizeof(word_t); i++)
+    num_elements_read = fread(g_cpu_ptr->const_mem, sizeof(word_t), (uint32_t)g_cpu_ptr->const_mem_size / sizeof(word_t), f);
+    if (num_elements_read != (uint32_t)g_cpu_ptr->const_mem_size / sizeof(word_t))
     {
-        (g_cpu_ptr->const_mem)[i] = swap_uint32((g_cpu_ptr->const_mem)[i]);
+        return false;
+    }
+    for (unsigned int i = 0; i < (uint32_t)g_cpu_ptr->const_mem_size / sizeof(word_t); i++)
+    {
+        (g_cpu_ptr->const_mem)[i] = (word_t)swap_uint32((uint32_t)(g_cpu_ptr->const_mem)[i]);
     }
 
     return true;
@@ -64,19 +77,33 @@ static bool load_consts(FILE* f)
 **/
 static bool load_code(FILE* f)
 {
+    size_t num_elements_read;
+
     uint32_t text_origin;
-    fread(&(text_origin), sizeof(text_origin), 1, f);
+    num_elements_read = fread(&(text_origin), sizeof(text_origin), 1, f);
+    if (num_elements_read != 1)
+    {
+        return false;
+    }
     text_origin = swap_uint32(text_origin);
 
-    fread(&(g_cpu_ptr->code_mem_size), sizeof(g_cpu_ptr->code_mem_size), 1, f);
-    g_cpu_ptr->code_mem_size = swap_uint32(g_cpu_ptr->code_mem_size);
+    num_elements_read = fread(&(g_cpu_ptr->code_mem_size), sizeof(g_cpu_ptr->code_mem_size), 1, f);
+    if (num_elements_read != 1)
+    {
+        return false;
+    }
+    g_cpu_ptr->code_mem_size = (int)swap_uint32((uint32_t)g_cpu_ptr->code_mem_size);
 
-    g_cpu_ptr->code_mem = (byte_t*)malloc(g_cpu_ptr->code_mem_size * sizeof(byte_t));
+    g_cpu_ptr->code_mem = (byte_t*)malloc((uint32_t)g_cpu_ptr->code_mem_size * sizeof(byte_t));
     if (g_cpu_ptr->code_mem == NULL)
     {
         return false;
     }
-    fread(g_cpu_ptr->code_mem, sizeof(byte_t), g_cpu_ptr->code_mem_size, f);
+    num_elements_read = fread(g_cpu_ptr->code_mem, sizeof(byte_t), (uint32_t)g_cpu_ptr->code_mem_size, f);
+    if (num_elements_read != (uint32_t)g_cpu_ptr->code_mem_size / sizeof(byte_t))
+    {
+        return false;
+    }
 
     return true;
 }
@@ -84,8 +111,10 @@ static bool load_code(FILE* f)
 
 bool load_bin(char* path)
 {
+    size_t num_elements_read;
     uint32_t magic_number;
     FILE* f;
+
     if (!(f = fopen(path, "rb")))
     {
 #ifdef DEBUG
@@ -95,9 +124,7 @@ bool load_bin(char* path)
     }
 
     num_elements_read = fread(&(magic_number), sizeof(magic_number), 1, f);
-    fread(&(magic_number), sizeof(magic_number), 1, f);
-
-    if (!check_file_signature(magic_number) || (!load_consts(f) || (!load_code(f))))
+    if (num_elements_read != 1 || (!check_file_signature((uint32_t)magic_number) || (!load_consts(f) || (!load_code(f)))))
     {
         fclose(f);
         return false;
