@@ -1,5 +1,4 @@
-#include "ijvm.h"
-#include "cpu.h"
+#include "test.h"
 
 
 /**
@@ -9,15 +8,13 @@
 
 word_t* get_stack(void)
 {
-    // TODO: return pointer to stack of current frame, not whole stack
     return g_cpu_ptr->stack;
 }
 
 
 int stack_size(void)
 {
-    // TODO: calculate size based on fp and sp
-    return g_cpu_ptr->sp;
+    return (g_cpu_ptr->sp - g_cpu_ptr->fp) + g_cpu_ptr->nv;
 }
 
 
