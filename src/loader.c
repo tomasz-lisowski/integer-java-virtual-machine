@@ -84,6 +84,7 @@ static bool load_code(FILE* f)
 
 bool load_bin(char* path)
 {
+    uint32_t magic_number;
     FILE* f;
     if (!(f = fopen(path, "rb")))
     {
@@ -93,7 +94,7 @@ bool load_bin(char* path)
         return false;
     }
 
-    uint32_t magic_number;
+    num_elements_read = fread(&(magic_number), sizeof(magic_number), 1, f);
     fread(&(magic_number), sizeof(magic_number), 1, f);
 
     if (!check_file_signature(magic_number) || (!load_consts(f) || (!load_code(f))))

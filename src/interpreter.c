@@ -60,6 +60,7 @@ static inline void exec_op_iload(void)
 static inline void exec_op_istore(void)
 {
 	uint16_t var_i;
+	word_t val = stack_pop();
 	if (next_op_wide)
 	{
 		var_i = (uint16_t)get_arg_short();
@@ -68,14 +69,13 @@ static inline void exec_op_istore(void)
 	{
 		var_i = (uint16_t)get_arg_byte();
 	}
-	word_t val = stack_pop();
 	update_local_variable(val, var_i);
 }
 
 
 static inline void exec_op_pop(void)
 {
-	g_cpu_ptr->sp -= 1; // TODO: Measure performance difference vs. calling stack_pop();
+	stack_pop();
 }
 
 
