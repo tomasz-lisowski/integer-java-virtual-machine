@@ -86,7 +86,9 @@ bool load_bin(char* path)
     FILE* f;
     if (!(f = fopen(path, "rb")))
     {
+#ifdef DEBUG
         dprintf("[FILE COULD NOT BE OPENED]\n");
+#endif
         return false;
     }
 
@@ -100,6 +102,8 @@ bool load_bin(char* path)
     }
 
     fclose(f);
+#ifdef DEBUG
     dprintf("[LOAD OK]\n");
+#endif
     return true;
 }

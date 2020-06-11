@@ -85,6 +85,7 @@ word_t get_local_variable(int i);
 void update_local_variable(word_t new_val, int i);
 
 
+#ifdef DEBUG
 /**
 * Functions to print out CPU state
 **/
@@ -95,5 +96,6 @@ void print_cpu_code_mem(bool compact);
 void print_cpu_registers(bool compact);
 void print_cpu_stack(bool compact); // For current frame
 void print_cpu_local_vars(bool compact); // For current frame
+#endif
 
 #endif

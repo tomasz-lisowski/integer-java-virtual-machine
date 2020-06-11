@@ -99,6 +99,7 @@ void update_local_variable(word_t new_val, int i)
 }
 
 
+#ifdef DEBUG
 void print_cpu_state(bool compact)
 {
     dprintf("[CPU DUMP]\n");
@@ -119,15 +120,15 @@ void print_cpu_mem_size(bool compact)
         dprintf(" DM:%i", g_cpu_ptr->const_mem_size);
         dprintf(" CM:%i", g_cpu_ptr->code_mem_size);
         dprintf(" ST:%i", g_cpu_ptr->stack_size);
-        dprintf(" V:%i", g_cpu_ptr->nv);
+        dprintf(" V:%i",  g_cpu_ptr->nv);
         dprintf(" ]");
     }
     else
     {
         dprintf("Mem Size\n");
-        dprintf("\tConstant Pool Size: %i\n", g_cpu_ptr->const_mem_size);
-        dprintf("\tText Size: %i\n", g_cpu_ptr->code_mem_size);
-        dprintf("\tStack Size: %i\n", g_cpu_ptr->stack_size);
+        dprintf("\tConstant Pool Size: %i\n",   g_cpu_ptr->const_mem_size);
+        dprintf("\tText Size: %i\n",            g_cpu_ptr->code_mem_size);
+        dprintf("\tStack Size: %i\n",           g_cpu_ptr->stack_size);
         dprintf("\tVariable Memory Size: %i\n", g_cpu_ptr->nv);
     }
 }
@@ -181,7 +182,7 @@ void print_cpu_registers(bool compact)
 {
     if (compact)
     {
-        dprintf("PC:%-4i", g_cpu_ptr->pc);
+        dprintf("PC:%-4i",   g_cpu_ptr->pc);
         dprintf("  SP:%-4i", g_cpu_ptr->sp);
         dprintf("  FP:%-4i", g_cpu_ptr->fp);
         dprintf("  LV:%-4i", g_cpu_ptr->lv);
@@ -241,3 +242,4 @@ void print_cpu_local_vars(bool compact)
         }
     }
 }
+#endif

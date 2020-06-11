@@ -272,12 +272,16 @@ void run(void)
 	// Reset interpreter state
 	next_op_wide = false;
 	
+#ifdef DEBUG
 	dprintf("[VM START]\n");
+#endif
 	while (!finished())
 	{
 		step();
 	}
+#ifdef DEBUG
 	dprintf("[VM STOP]\n");
+#endif
 }
 
 
@@ -285,7 +289,7 @@ bool step(void)
 {
 #ifdef DEBUG
 	int old_pc = g_cpu_ptr->pc;
-	char* op = op_decode((g_cpu_ptr->code_mem)[g_cpu_ptr->pc]);
+	const char* op = op_decode((g_cpu_ptr->code_mem)[g_cpu_ptr->pc]);
 #endif
 
 	switch ((g_cpu_ptr->code_mem)[(g_cpu_ptr->pc)++])
@@ -363,7 +367,9 @@ bool step(void)
 		exec_op_halt();
 		break;
 	default:
+#ifdef DEBUG
 		dprintf("[INVALID OP 0x%X]\n", (g_cpu_ptr->code_mem)[g_cpu_ptr->pc - 1]);
+#endif
 		g_cpu_ptr->error_flag = true;
 	}
 
@@ -389,6 +395,7 @@ bool finished(void)
 
 	if (end_of_code || cpu_err || cpu_halt)
 	{
+#ifdef DEBUG
 		if (cpu_halt)
 		{
 			dprintf("[HALT_FLAG]\n");
@@ -400,6 +407,7 @@ bool finished(void)
 		else if (end_of_code) {
 			dprintf("[TEXT_END]\n");
 		}
+#endif
 		return true;
 	}
 	else

@@ -7,7 +7,8 @@ uint32_t swap_uint32(uint32_t num)
 }
 
 
-char* op_decode(byte_t op)
+#ifdef DEBUG
+const char* op_decode(byte_t op)
 {
 	switch (op)
 	{
@@ -87,6 +88,7 @@ char* op_decode(byte_t op)
 		return "NULL";
 	}
 }
+#endif
 
 
 uint64_t power(uint32_t base, uint32_t power)
