@@ -63,7 +63,7 @@ word_t stack_pop(void);
  *          false on failure
  * Toggles the error flag if stack is resized beyond 4294967296
  **/
-bool octuple_stack(void);
+bool octuple_stack_size(void);
 
 
 /**

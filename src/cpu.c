@@ -15,14 +15,23 @@ word_t tos(void)
 
 bool stack_push(word_t e)
 {
-    if (g_cpu_ptr->sp >= g_cpu_ptr->stack_size)
+    if (++g_cpu_ptr->sp < g_cpu_ptr->stack_size)
     {
-        if (octuple_stack() != true)
-        {
-            return false; // Resizing failed
-        }
+        (g_cpu_ptr->stack)[g_cpu_ptr->sp] = e;
     }
-    (g_cpu_ptr->stack)[++g_cpu_ptr->sp] = e;
+    else
+    {
+        // Resize until the size is enough
+        while (g_cpu_ptr->sp >= g_cpu_ptr->stack_size)
+        {
+            if (octuple_stack_size() != true)
+            {
+                return false; // Resizing failed
+            }
+        }
+        (g_cpu_ptr->stack)[g_cpu_ptr->sp] = e;
+    }
+    
     return true;
 }
 
@@ -38,7 +47,7 @@ word_t stack_pop(void)
 }
 
 
-bool octuple_stack(void)
+bool octuple_stack_size(void)
 {
     if (g_cpu_ptr->stack_size * 4 >= 4294967296)
     {
