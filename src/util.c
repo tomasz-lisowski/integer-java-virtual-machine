@@ -88,18 +88,150 @@ const char* op_decode(byte_t op)
 		return "NULL";
 	}
 }
-#endif
 
 
-uint64_t power(uint32_t base, uint32_t power)
+void print_cpu_state(bool compact)
 {
-	if (power == 0)
-	{
-		return 1;
-	}
-	for (uint32_t i = 0; i < power; i++)
-	{
-		base *= power;
-	}
-	return base;
+    dprintf("[CPU DUMP]\n");
+    print_cpu_mem_size(compact);
+    print_cpu_registers(compact);
+    print_cpu_const_mem(compact);
+    print_cpu_code_mem(compact);
+    print_cpu_stack(compact);
+    print_cpu_local_vars(compact);
 }
+
+
+void print_cpu_mem_size(bool compact)
+{
+    if (compact)
+    {
+        dprintf("Mem Size [");
+        dprintf(" DM:%i", g_cpu->const_mem_size);
+        dprintf(" CM:%i", g_cpu->code_mem_size);
+        dprintf(" ST:%i", g_cpu->stack_size);
+        dprintf(" V:%i", g_cpu->nv);
+        dprintf(" ]");
+    }
+    else
+    {
+        dprintf("Mem Size\n");
+        dprintf("\tConstant Pool Size: %i\n", g_cpu->const_mem_size);
+        dprintf("\tText Size: %i\n", g_cpu->code_mem_size);
+        dprintf("\tStack Size: %i\n", g_cpu->stack_size);
+        dprintf("\tVariable Memory Size: %i\n", g_cpu->nv);
+    }
+}
+
+
+void print_cpu_const_mem(bool compact)
+{
+    if (compact)
+    {
+        dprintf("C[");
+        for (uint32_t i = 0; i < (uint32_t)g_cpu->const_mem_size / sizeof(word_t); i++)
+        {
+            dprintf(" %i", (g_cpu->const_mem)[i]);
+        }
+        dprintf(" ]");
+    }
+    else
+    {
+        dprintf("Consts\n");
+        for (uint32_t i = 0; i < (uint32_t)g_cpu->const_mem_size / sizeof(word_t); i++)
+        {
+            dprintf("\t%i\n", (g_cpu->const_mem)[i]);
+        }
+    }
+}
+
+
+void print_cpu_code_mem(bool compact)
+{
+    if (compact)
+    {
+        dprintf("OP[");
+        for (uint32_t i = 0; i < (uint32_t)g_cpu->code_mem_size / sizeof(byte_t); i++)
+        {
+            dprintf(" 0x%X", (g_cpu->code_mem)[i]);
+        }
+        dprintf(" ]");
+    }
+    else
+    {
+        dprintf("OPs\n");
+        for (uint32_t i = 0; i < (uint32_t)g_cpu->code_mem_size / sizeof(byte_t); i++)
+        {
+            dprintf("\t0x%X\n", (g_cpu->code_mem)[i]);
+        }
+    }
+}
+
+
+void print_cpu_registers(bool compact)
+{
+    if (compact)
+    {
+        dprintf("PC:%-4i", g_cpu->pc);
+        dprintf("  SP:%-4i", g_cpu->sp);
+        dprintf("  FP:%-4i", g_cpu->fp);
+        dprintf("  LV:%-4i", g_cpu->lv);
+        dprintf("  NV:%-4i", g_cpu->nv);
+    }
+    else
+    {
+        dprintf("Regs\n");
+        dprintf("\tPC: %i\n", g_cpu->pc);
+        dprintf("\tSP: %i\n", g_cpu->sp);
+        dprintf("\tFP: %i\n", g_cpu->fp);
+        dprintf("\tLV: %i\n", g_cpu->lv);
+        dprintf("\tNV: %i\n", g_cpu->nv);
+    }
+}
+
+
+void print_cpu_stack(bool compact)
+{
+    if (compact)
+    {
+        dprintf("S[");
+        for (int64_t i = (uint32_t)g_cpu->fp; i <= g_cpu->sp; i++)
+        {
+            dprintf(" %i", (g_cpu->stack)[i]);
+        }
+        dprintf(" ]");
+    }
+    else
+    {
+        dprintf("Stack\n");
+        for (int64_t i = (uint32_t)g_cpu->fp; i <= g_cpu->sp; i++)
+        {
+            dprintf("\t%i\n", (g_cpu->stack)[i]);
+        }
+    }
+}
+
+
+void print_cpu_local_vars(bool compact)
+{
+    if (compact)
+    {
+        dprintf("LV[");
+        for (uint32_t i = (uint32_t)g_cpu->lv; i < (uint32_t)(g_cpu->lv + g_cpu->nv); i++)
+        {
+            dprintf(" %i", (g_cpu->stack)[i]);
+        }
+        dprintf(" ]");
+    }
+    else
+    {
+        dprintf("LV\n");
+        for (uint32_t i = (uint32_t)g_cpu->lv; i < (uint32_t)(g_cpu->lv + g_cpu->nv); i++)
+        {
+            dprintf("\t%i\n", (g_cpu->stack)[i]);
+        }
+    }
+}
+
+
+#endif

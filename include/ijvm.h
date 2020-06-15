@@ -152,4 +152,5 @@ int init_ijvm(char* binary_path);
  */
 void destroy_ijvm(void);
 
+
 #endif

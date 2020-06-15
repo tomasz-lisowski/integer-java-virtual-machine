@@ -8,35 +8,35 @@
 
 word_t* get_stack(void)
 {
-    return g_cpu_ptr->stack;
+    return g_cpu->stack;
 }
 
 
 int stack_size(void)
 {
-    return (g_cpu_ptr->sp - g_cpu_ptr->fp) + g_cpu_ptr->nv;
+    return (g_cpu->sp - g_cpu->fp) + g_cpu->nv;
 }
 
 
 byte_t* get_text(void)
 {
-    return g_cpu_ptr->code_mem;
+    return g_cpu->code_mem;
 }
 
 
 int text_size(void)
 {
-    return g_cpu_ptr->code_mem_size;
+    return g_cpu->code_mem_size;
 }
 
 
 int get_program_counter(void)
 {
-    return g_cpu_ptr->pc;
+    return g_cpu->pc;
 }
 
 
 byte_t get_instruction(void)
 {
-    return (g_cpu_ptr->code_mem)[g_cpu_ptr->pc];
+    return (g_cpu->code_mem)[g_cpu->pc];
 }

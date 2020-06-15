@@ -44,26 +44,26 @@ static bool load_consts(FILE* f)
     const_pool_origin = swap_uint32(const_pool_origin);
 
 
-    num_elements_read = fread(&(g_cpu_ptr->const_mem_size), sizeof(g_cpu_ptr->const_mem_size), 1, f);
+    num_elements_read = fread(&(g_cpu->const_mem_size), sizeof(g_cpu->const_mem_size), 1, f);
     if (num_elements_read != 1)
     {
         return false;
     }
-    g_cpu_ptr->const_mem_size = (int)swap_uint32((uint32_t)g_cpu_ptr->const_mem_size);
+    g_cpu->const_mem_size = (int)swap_uint32((uint32_t)g_cpu->const_mem_size);
 
-    g_cpu_ptr->const_mem = (word_t*)malloc((uint32_t)g_cpu_ptr->const_mem_size * sizeof(word_t));
-    if (g_cpu_ptr->const_mem == NULL)
+    g_cpu->const_mem = (word_t*)malloc((uint32_t)g_cpu->const_mem_size * sizeof(word_t));
+    if (g_cpu->const_mem == NULL)
     {
         return false;
     }
-    num_elements_read = fread(g_cpu_ptr->const_mem, sizeof(word_t), (uint32_t)g_cpu_ptr->const_mem_size / sizeof(word_t), f);
-    if (num_elements_read != (uint32_t)g_cpu_ptr->const_mem_size / sizeof(word_t))
+    num_elements_read = fread(g_cpu->const_mem, sizeof(word_t), (uint32_t)g_cpu->const_mem_size / sizeof(word_t), f);
+    if (num_elements_read != (uint32_t)g_cpu->const_mem_size / sizeof(word_t))
     {
         return false;
     }
-    for (unsigned int i = 0; i < (uint32_t)g_cpu_ptr->const_mem_size / sizeof(word_t); i++)
+    for (unsigned int i = 0; i < (uint32_t)g_cpu->const_mem_size / sizeof(word_t); i++)
     {
-        (g_cpu_ptr->const_mem)[i] = (word_t)swap_uint32((uint32_t)(g_cpu_ptr->const_mem)[i]);
+        (g_cpu->const_mem)[i] = (word_t)swap_uint32((uint32_t)(g_cpu->const_mem)[i]);
     }
 
     return true;
@@ -87,20 +87,20 @@ static bool load_code(FILE* f)
     }
     text_origin = swap_uint32(text_origin);
 
-    num_elements_read = fread(&(g_cpu_ptr->code_mem_size), sizeof(g_cpu_ptr->code_mem_size), 1, f);
+    num_elements_read = fread(&(g_cpu->code_mem_size), sizeof(g_cpu->code_mem_size), 1, f);
     if (num_elements_read != 1)
     {
         return false;
     }
-    g_cpu_ptr->code_mem_size = (int)swap_uint32((uint32_t)g_cpu_ptr->code_mem_size);
+    g_cpu->code_mem_size = (int)swap_uint32((uint32_t)g_cpu->code_mem_size);
 
-    g_cpu_ptr->code_mem = (byte_t*)malloc((uint32_t)g_cpu_ptr->code_mem_size * sizeof(byte_t));
-    if (g_cpu_ptr->code_mem == NULL)
+    g_cpu->code_mem = (byte_t*)malloc((uint32_t)g_cpu->code_mem_size * sizeof(byte_t));
+    if (g_cpu->code_mem == NULL)
     {
         return false;
     }
-    num_elements_read = fread(g_cpu_ptr->code_mem, sizeof(byte_t), (uint32_t)g_cpu_ptr->code_mem_size, f);
-    if (num_elements_read != (uint32_t)g_cpu_ptr->code_mem_size / sizeof(byte_t))
+    num_elements_read = fread(g_cpu->code_mem, sizeof(byte_t), (uint32_t)g_cpu->code_mem_size, f);
+    if (num_elements_read != (uint32_t)g_cpu->code_mem_size / sizeof(byte_t))
     {
         return false;
     }

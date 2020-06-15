@@ -11,11 +11,11 @@
 
 typedef struct CPU_t
 {
-    // All sizes in "number of elements" units
+    // All sizes in "elements" units
 	int const_mem_size;
 	int code_mem_size;
 	int stack_size;
-
+	
 	word_t* const_mem;
 	byte_t* code_mem;
 	word_t* stack;
@@ -31,7 +31,7 @@ typedef struct CPU_t
 }CPU_t;
 
 
-extern CPU_t* restrict g_cpu_ptr; // One CPU shared across the entire machine
+extern CPU_t* restrict g_cpu; // One CPU shared across the entire machine
 extern FILE* restrict g_out_file;
 extern FILE* restrict g_in_file;
 
@@ -82,18 +82,5 @@ word_t get_local_variable(int i);
 **/
 void update_local_variable(word_t new_val, int i);
 
-
-#ifdef DEBUG
-/**
-* Functions to print out CPU state
-**/
-void print_cpu_state(bool compact);
-void print_cpu_mem_size(bool compact);
-void print_cpu_const_mem(bool compact);
-void print_cpu_code_mem(bool compact);
-void print_cpu_registers(bool compact);
-void print_cpu_stack(bool compact); // For current frame
-void print_cpu_local_vars(bool compact); // For current frame
-#endif
 
 #endif

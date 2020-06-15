@@ -9,7 +9,7 @@ static bool next_op_wide = false;
 **/
 static inline byte_t get_arg_byte(void)
 {
-	return (g_cpu_ptr->code_mem)[g_cpu_ptr->pc++];
+	return (g_cpu->code_mem)[g_cpu->pc++];
 }
 
 
@@ -18,8 +18,8 @@ static inline byte_t get_arg_byte(void)
 **/
 static inline short get_arg_short(void)
 {
-	byte_t b1 = (g_cpu_ptr->code_mem)[g_cpu_ptr->pc++];
-	byte_t b2 = (g_cpu_ptr->code_mem)[g_cpu_ptr->pc++];
+	byte_t b1 = (g_cpu->code_mem)[g_cpu->pc++];
+	byte_t b2 = (g_cpu->code_mem)[g_cpu->pc++];
 	return (short)((b1 << 8) | b2);
 }
 
@@ -38,7 +38,7 @@ static inline void exec_op_bipush(void)
 static inline void exec_op_ldc_w(void)
 {
 	uint16_t const_index = (uint16_t)get_arg_short();
-	stack_push((g_cpu_ptr->const_mem)[const_index]);
+	stack_push((g_cpu->const_mem)[const_index]);
 }
 
 
@@ -81,7 +81,7 @@ static inline void exec_op_pop(void)
 
 static inline void exec_op_dup(void)
 {
-	stack_push((g_cpu_ptr->stack)[g_cpu_ptr->sp]);
+	stack_push((g_cpu->stack)[g_cpu->sp]);
 }
 
 
@@ -140,7 +140,7 @@ static inline void exec_op_ifeq(void)
 	uint32_t target = (uint32_t)get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
 	if (stack_pop() == 0)
 	{
-		g_cpu_ptr->pc += (int)target;
+		g_cpu->pc += (int)target;
 	}
 }
 
@@ -150,7 +150,7 @@ static inline void exec_op_iflt(void)
 	uint32_t target = (uint32_t)get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
 	if (stack_pop() < 0)
 	{
-		g_cpu_ptr->pc += (int)target;
+		g_cpu->pc += (int)target;
 	}
 }
 
@@ -160,7 +160,7 @@ static inline void exec_op_icmpeq(void)
 	uint32_t target = (uint32_t)get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
 	if (stack_pop() ==  stack_pop())
 	{
-		g_cpu_ptr->pc += (int)target;
+		g_cpu->pc += (int)target;
 	}
 }
 
@@ -168,21 +168,21 @@ static inline void exec_op_icmpeq(void)
 static inline void exec_op_goto(void)
 {
 	uint32_t target = (uint32_t)get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
-	g_cpu_ptr->pc += (int)target;
+	g_cpu->pc += (int)target;
 }
 
 
 static inline void exec_op_ireturn(void)
 {
 	word_t ret_val = stack_pop();
-	int old_nv = g_cpu_ptr->nv;
+	int old_nv = g_cpu->nv;
 
-	g_cpu_ptr->sp = g_cpu_ptr->fp + 3;
-	g_cpu_ptr->pc = stack_pop();
-	g_cpu_ptr->fp = stack_pop();
-	g_cpu_ptr->nv = stack_pop();
-	g_cpu_ptr->lv = stack_pop();
-	g_cpu_ptr->sp -= old_nv; // Remove all local variables from stack
+	g_cpu->sp = g_cpu->fp + 3;
+	g_cpu->pc = stack_pop();
+	g_cpu->fp = stack_pop();
+	g_cpu->nv = stack_pop();
+	g_cpu->lv = stack_pop();
+	g_cpu->sp -= old_nv; // Remove all local variables from stack
 	stack_push(ret_val);
 }
 
@@ -198,23 +198,22 @@ static inline void exec_op_ior(void)
 static inline void exec_op_invokevirtual(void)
 {
 	word_t offset = get_constant(get_arg_short()); // Move PC to return address while getting offset
-	int old_pc = g_cpu_ptr->pc;
+	int old_pc = g_cpu->pc;
 	uint16_t num_args, num_locals;
 
-	g_cpu_ptr->pc = offset; // Move into method's memory
+	g_cpu->pc = offset; // Move into method's memory
 	num_args = (uint16_t)get_arg_short();
 	num_locals = (uint16_t)get_arg_short();
 
-
-	g_cpu_ptr->sp += num_locals;
-	stack_push(g_cpu_ptr->lv);
-	stack_push(g_cpu_ptr->nv);
-	stack_push(g_cpu_ptr->fp);
+	g_cpu->sp += num_locals;
+	stack_push(g_cpu->lv);
+	stack_push(g_cpu->nv);
+	stack_push(g_cpu->fp);
 	stack_push(old_pc);
 	
-	g_cpu_ptr->fp = g_cpu_ptr->sp - 3;
-	g_cpu_ptr->nv = num_args + num_locals;
-	g_cpu_ptr->lv = g_cpu_ptr->fp - g_cpu_ptr->nv;
+	g_cpu->fp = g_cpu->sp - 3;
+	g_cpu->nv = num_args + num_locals;
+	g_cpu->lv = g_cpu->fp - g_cpu->nv;
 
 	/**
 	* Stack after call:
@@ -261,13 +260,13 @@ static inline void exec_op_out(void)
 
 static inline void exec_op_err(void)
 {
-	g_cpu_ptr->error_flag = true;
+	g_cpu->error_flag = true;
 }
 
 
 static inline void exec_op_halt(void)
 {
-	g_cpu_ptr->halt_flag = true;
+	g_cpu->halt_flag = true;
 }
 
 
@@ -292,11 +291,11 @@ void run(void)
 bool step(void)
 {
 #ifdef DEBUG
-	int old_pc = g_cpu_ptr->pc;
-	const char* op = op_decode((g_cpu_ptr->code_mem)[g_cpu_ptr->pc]);
+	int old_pc = g_cpu->pc;
+	const char* op = op_decode((g_cpu->code_mem)[g_cpu->pc]);
 #endif
 
-	switch ((g_cpu_ptr->code_mem)[(g_cpu_ptr->pc)++])
+	switch ((g_cpu->code_mem)[(g_cpu->pc)++])
 	{
 	case OP_NOP:
 		exec_op_nop();
@@ -372,19 +371,24 @@ bool step(void)
 		break;
 	default:
 #ifdef DEBUG
-		dprintf("[INVALID OP 0x%X]\n", (g_cpu_ptr->code_mem)[g_cpu_ptr->pc - 1]);
+		dprintf("[INVALID OP 0x%X]\n", (g_cpu->code_mem)[g_cpu->pc - 1]);
 #endif
-		g_cpu_ptr->error_flag = true;
+		g_cpu->error_flag = true;
 	}
 
 #ifdef DEBUG
-	dprintf("OPC: %-4i OP: %-14s", old_pc, op);
-	print_cpu_registers(true);
-	dprintf(" ");
-	print_cpu_stack(true);
-	dprintf("\t");
-	print_cpu_local_vars(true);
-	dprintf("\n");
+	if (g_cpu->error_flag == false)
+	{
+		dprintf("OPC: %-4i OP: %-14s", old_pc, op);
+		print_cpu_registers(true);
+		dprintf("  ");
+		print_cpu_stack(true);
+		dprintf("    ");
+		print_cpu_local_vars(true);
+		dprintf("    ");
+		print_arr_refs(true);
+		dprintf("\n");
+	}
 #endif
 
 	return true;
@@ -393,9 +397,9 @@ bool step(void)
 
 bool finished(void)
 {
-	bool end_of_code = g_cpu_ptr->pc == g_cpu_ptr->code_mem_size;
-	bool cpu_err = g_cpu_ptr->error_flag;
-	bool cpu_halt = g_cpu_ptr->halt_flag;
+	bool end_of_code = g_cpu->pc == g_cpu->code_mem_size;
+	bool cpu_err = g_cpu->error_flag;
+	bool cpu_halt = g_cpu->halt_flag;
 
 	if (end_of_code || cpu_err || cpu_halt)
 	{

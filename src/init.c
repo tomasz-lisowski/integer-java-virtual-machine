@@ -6,7 +6,7 @@
 **/
 static byte_t get_arg_byte(int i)
 {
-	return (g_cpu_ptr->code_mem)[i];
+	return (g_cpu->code_mem)[i];
 }
 
 
@@ -15,8 +15,8 @@ static byte_t get_arg_byte(int i)
 **/
 static short get_arg_short(int i)
 {
-	byte_t b1 = (g_cpu_ptr->code_mem)[i];
-	byte_t b2 = (g_cpu_ptr->code_mem)[i + 1];
+	byte_t b1 = (g_cpu->code_mem)[i];
+	byte_t b2 = (g_cpu->code_mem)[i + 1];
 	return (short)((b1 << 8) | b2);
 }
 
@@ -40,9 +40,9 @@ static uint32_t get_num_local_vars_main(void)
 	* and determine the number of referenced variables inside main.
 	* "Loop Jamming"
 	**/ 
-	for (uint32_t i = 0; (int)i < g_cpu_ptr->code_mem_size; i++)
+	for (uint32_t i = 0; (int)i < g_cpu->code_mem_size; i++)
 	{
-		op = (g_cpu_ptr->code_mem)[i];
+		op = (g_cpu->code_mem)[i];
 
 		// Don't iterate over instructions of another method
 		if (i != (~(uint32_t)0) && i + 2 > addr_first_method_after_main)
@@ -110,29 +110,29 @@ static uint32_t get_num_local_vars_main(void)
 
 
 /**
-* Use machine config (config.h) to init the CPU stack
+* Init the CPU stack
 **/
 static void init_stack(void)
 {
 	uint32_t main_num_vars = get_num_local_vars_main();
 
-	// MAX_SIZE = 4294967296 = (4096 * sizeof(word_t)) * 8^i where i == 6
+	// MAX_SIZE = 4294967296 = (STACK_MIN_SIZE * sizeof(word_t)) * 8^i
 	for (uint32_t i = 0; i <= 6; i++)
 	{
 		// Find smallest suitable stack size 
-		if ((main_num_vars * sizeof(word_t)) + 1024 <= (4096 * sizeof(word_t)) * power(8, i)) // 1024 is an arbitrary margin for operands
+		if ((main_num_vars * sizeof(word_t)) + 1024 <= (STACK_MIN_SIZE * sizeof(word_t)) * power(8, i)) // 1024 is an arbitrary margin for operands
 		{
-			g_cpu_ptr->stack_size = (int)(4096 * power(8, i));
+			g_cpu->stack_size = (int)(STACK_MIN_SIZE * power(8, i));
 			break;
 		}
 	}
-	g_cpu_ptr->stack = (word_t*)malloc((uint32_t)g_cpu_ptr->stack_size * sizeof(word_t));
+	g_cpu->stack = (word_t*)malloc((uint32_t)g_cpu->stack_size * sizeof(word_t));
 
 	// Pre-allocate local variable memory before the operand stack of main
-	g_cpu_ptr->sp = (int)(main_num_vars) - 1;
-	g_cpu_ptr->lv = 0;
-	g_cpu_ptr->nv = (int)(main_num_vars);
-	g_cpu_ptr->fp = (int)(main_num_vars);
+	g_cpu->sp = (int)(main_num_vars) - 1;
+	g_cpu->lv = 0;
+	g_cpu->nv = (int)(main_num_vars);
+	g_cpu->fp = (int)(main_num_vars);
 }
 
 
@@ -141,7 +141,7 @@ static void init_stack(void)
 **/
 static void init_registers(void)
 {
-	g_cpu_ptr->pc = 0;
+	g_cpu->pc = 0;
 }
 
 
@@ -150,8 +150,8 @@ static void init_registers(void)
 **/
 static void init_cpu_flags(void)
 {
-	g_cpu_ptr->error_flag = false;
-	g_cpu_ptr->halt_flag = false;
+	g_cpu->error_flag = false;
+	g_cpu->halt_flag = false;
 }
 
 
@@ -166,6 +166,7 @@ int init_ijvm(char* binary_path)
 	init_registers();
 	init_stack();
 	init_cpu_flags();
+
 
 	set_output(stdout);
 	set_input(stdin);

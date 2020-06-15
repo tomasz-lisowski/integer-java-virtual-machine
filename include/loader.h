@@ -1,8 +1,10 @@
 #ifndef LOADER_H
 #define LOADER_H
 
+
 #include <stdlib.h> // For malloc
 #include <stdio.h>  // Contains FILE * type
+
 
 #include "cpu.h"
 #include "types.h"
@@ -15,5 +17,6 @@
 *          0 on failure
 **/
 bool load_bin(char* path);
+
 
 #endif
