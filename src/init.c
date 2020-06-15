@@ -92,6 +92,10 @@ static uint32_t get_num_local_vars_main(void)
 			continue;
 
 		case OP_BIPUSH:
+		case OP_NEWARRAY:
+		case OP_IALOAD:
+		case OP_IASTORE:
+		case OP_GC:
 			i += 1;
 			continue;
 

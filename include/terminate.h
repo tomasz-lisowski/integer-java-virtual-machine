@@ -6,6 +6,7 @@
 
 
 #include "cpu.h"
+#include "array.h"
 
 
 /**

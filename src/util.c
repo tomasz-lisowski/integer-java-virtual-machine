@@ -7,86 +7,112 @@ uint32_t swap_uint32(uint32_t num)
 }
 
 
+uint64_t power(uint32_t base, uint32_t power)
+{
+	if (power == 0)
+	{
+		return 1;
+	}
+	for (uint32_t i = 0; i < power; i++)
+	{
+		base *= power;
+	}
+	return base;
+}
+
+
 #ifdef DEBUG
 const char* op_decode(byte_t op)
 {
-	switch (op)
-	{
-	case OP_NOP:
-		return "NOP";
-		break;
-	case OP_BIPUSH:
-		return "BIPUSH";
-		break;
-	case OP_LDC_W:
-		return "LDC_W";
-		break;
-	case OP_ILOAD:
-		return "ILOAD";
-		break;
-	case OP_ISTORE:
-		return "ISTORE";
-		break;
-	case OP_POP:
-		return "POP";
-		break;
-	case OP_DUP:
-		return "DUP";
-		break;
-	case OP_SWAP:
-		return "SWAP";
-		break;
-	case OP_IADD:
-		return "IADD";
-		break;
-	case OP_ISUB:
-		return "ISUB";
-		break;
-	case OP_IAND:
-		return "IAND";
-		break;
-	case OP_IINC:
-		return "IINC";
-		break;
-	case OP_IFEQ:
-		return "IFEQ";
-		break;
-	case OP_IFLT:
-		return "IFLT";
-		break;
-	case OP_ICMPEQ:
-		return "ICMPEQ";
-		break;
-	case OP_GOTO:
-		return "GOTO";
-		break;
-	case OP_IRETURN:
-		return "IRETURN";
-		break;
-	case OP_IOR:
-		return "IOR";
-		break;
-	case OP_INVOKEVIRTUAL:
-		return "INVOKEVIRTUAL";
-		break;
-	case OP_WIDE:
-		return "WIDE";
-		break;
-	case OP_IN:
-		return "IN";
-		break;
-	case OP_OUT:
-		return "OUT";
-		break;
-	case OP_ERR:
-		return "ERR";
-		break;
-	case OP_HALT:
-		return "HALT";
-		break;
-	default:
-		return "NULL";
-	}
+    switch (op)
+    {
+    case OP_NOP:
+        return "NOP";
+        break;
+    case OP_BIPUSH:
+        return "BIPUSH";
+        break;
+    case OP_LDC_W:
+        return "LDC_W";
+        break;
+    case OP_ILOAD:
+        return "ILOAD";
+        break;
+    case OP_ISTORE:
+        return "ISTORE";
+        break;
+    case OP_POP:
+        return "POP";
+        break;
+    case OP_DUP:
+        return "DUP";
+        break;
+    case OP_SWAP:
+        return "SWAP";
+        break;
+    case OP_IADD:
+        return "IADD";
+        break;
+    case OP_ISUB:
+        return "ISUB";
+        break;
+    case OP_IAND:
+        return "IAND";
+        break;
+    case OP_IINC:
+        return "IINC";
+        break;
+    case OP_IFEQ:
+        return "IFEQ";
+        break;
+    case OP_IFLT:
+        return "IFLT";
+        break;
+    case OP_ICMPEQ:
+        return "ICMPEQ";
+        break;
+    case OP_GOTO:
+        return "GOTO";
+        break;
+    case OP_IRETURN:
+        return "IRETURN";
+        break;
+    case OP_IOR:
+        return "IOR";
+        break;
+    case OP_INVOKEVIRTUAL:
+        return "INVOKEVIRTUAL";
+        break;
+    case OP_WIDE:
+        return "WIDE";
+        break;
+    case OP_IN:
+        return "IN";
+        break;
+    case OP_OUT:
+        return "OUT";
+        break;
+    case OP_ERR:
+        return "ERR";
+        break;
+    case OP_HALT:
+        return "HALT";
+        break;
+    case OP_NEWARRAY:
+        return "NEWARRAY";
+        break;
+    case OP_IALOAD:
+        return "IALOAD";
+        break;
+    case OP_IASTORE:
+        return "IASTORE";
+        break;
+    case OP_GC:
+        return "GC";
+        break;
+    default:
+        return "NULL";
+    }
 }
 
 

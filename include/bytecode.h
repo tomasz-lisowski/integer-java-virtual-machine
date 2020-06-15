@@ -1,6 +1,7 @@
 #ifndef BYTECODE_H
 #define BYTECODE_H
 
+
 #define OP_NOP            ((byte_t) 0x00)
 #define OP_BIPUSH         ((byte_t) 0x10)
 #define OP_LDC_W          ((byte_t) 0x13)
@@ -25,5 +26,11 @@
 #define OP_OUT            ((byte_t) 0xFD)
 #define OP_ERR            ((byte_t) 0xFE)
 #define OP_HALT           ((byte_t) 0xFF)
+
+#define OP_NEWARRAY       ((byte_t) 0xD1)
+#define OP_IALOAD         ((byte_t) 0xD2)
+#define OP_IASTORE        ((byte_t) 0xD3)
+#define OP_GC             ((byte_t) 0xD4)
+
 
 #endif

@@ -270,6 +270,36 @@ static inline void exec_op_halt(void)
 }
 
 
+static inline void exec_op_newarray(void)
+{
+	word_t count = stack_pop();
+	stack_push(array_creation_handler(count));
+}
+
+
+static inline void exec_op_iaload(void)
+{
+	word_t array_ref = stack_pop();
+	word_t i = stack_pop();
+	stack_push(get_arr_element(array_ref, i));
+}
+
+
+static inline void exec_op_iastore(void)
+{
+	word_t array_ref = stack_pop();
+	word_t i = stack_pop();
+	word_t val = stack_pop();
+	set_arr_element(array_ref, i, val);
+}
+
+
+static inline void exec_op_gc(void)
+{
+	arrays_gc();
+}
+
+
 void run(void)
 {
 	// Reset interpreter state
@@ -368,6 +398,18 @@ bool step(void)
 		break;
 	case OP_HALT:
 		exec_op_halt();
+		break;
+	case OP_NEWARRAY:
+		exec_op_newarray();
+		break;
+	case OP_IALOAD:
+		exec_op_iaload();
+		break;
+	case OP_IASTORE:
+		exec_op_iastore();
+		break;
+	case OP_GC:
+		exec_op_gc();
 		break;
 	default:
 #ifdef DEBUG

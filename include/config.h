@@ -15,4 +15,16 @@
 #define STACK_MIN_SIZE 4096 // Elements
 
 
+/**
+* The array keeping track of array references will start at this size then resize
+* every time more space is needed when a new array is created.
+**/
+#define ARRAYS_MIN_NUM 64 // Elements
+/**
+* From AA00000A to AAFFFFFA (inclusive)
+* which means 16^5 = 1048576 unique array references
+**/
+#define ARRAYS_MAX_NUM 1048576 // Elements
+
+
 #endif

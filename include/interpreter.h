@@ -7,6 +7,7 @@
 #include "bytecode.h"
 #include "util.h"
 #include "init.h"
+#include "array.h"
 
 
 /**
