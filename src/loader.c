@@ -16,7 +16,9 @@ static bool check_file_signature(uint32_t magic_number)
 {
     if (swap_uint32(magic_number) != MAGIC_NUMBER)
     {
+#ifdef DEBUG
         dprintf("[BAD FILE SIGNATURE]\n");
+#endif
         return false;
     }
     else
