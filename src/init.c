@@ -57,7 +57,7 @@ static uint32_t get_num_local_vars_main(void)
 			continue;
 
 		case OP_INVOKEVIRTUAL:
-			addr = (uint32_t)get_arg_short((int)i + 1);
+			addr = (uint32_t)get_constant(get_arg_short((int)i + 1));
 			if (addr < addr_first_method_after_main)
 			{
 				addr_first_method_after_main = addr;
@@ -92,10 +92,6 @@ static uint32_t get_num_local_vars_main(void)
 			continue;
 
 		case OP_BIPUSH:
-		case OP_NEWARRAY:
-		case OP_IALOAD:
-		case OP_IASTORE:
-		case OP_GC:
 			i += 1;
 			continue;
 
@@ -107,8 +103,26 @@ static uint32_t get_num_local_vars_main(void)
 			i += 2;
 			continue;
 		}
-	}
 
+		/*case OP_DUP:
+		case OP_ERR:
+		case OP_HALT:
+		case OP_IADD:
+		case OP_IAND:
+		case OP_IN:
+		case OP_IOR:
+		case OP_IRETURN:
+		case OP_ISUB:
+		case OP_NOP:
+		case OP_OUT:
+		case OP_POP:
+		case OP_SWAP:
+		case OP_NEWARRAY:
+		case OP_IALOAD:
+		case OP_IASTORE:
+			// All these instructions don't take arguments
+			continue;*/
+	}
 	return var_num;
 }
 
