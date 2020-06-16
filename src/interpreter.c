@@ -273,7 +273,7 @@ static inline void exec_op_halt(void)
 static inline void exec_op_newarray(void)
 {
 	word_t count = stack_pop();
-	stack_push(array_creation_handler(count));
+	stack_push(start_array_creation(count));
 }
 
 

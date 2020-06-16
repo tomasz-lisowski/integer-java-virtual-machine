@@ -178,7 +178,7 @@ void set_arr_element(word_t arr_ref, word_t i, word_t new_val)
 }
 
 
-word_t array_creation_handler(word_t count)
+word_t start_array_creation(word_t count)
 {
 	uint32_t arr_i;
 	if (arr_id_mem.refs == NULL)
