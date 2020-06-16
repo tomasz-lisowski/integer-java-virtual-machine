@@ -205,7 +205,7 @@ word_t start_array_creation(word_t count)
 }
 
 
-void destroy_arrays(void)
+void destroy_all_arrays(void)
 {
 #ifdef DEBUG
 	dprintf("[DESTROY_ARRAYS]\n");
@@ -225,9 +225,77 @@ void destroy_arrays(void)
 }
 
 
-void arrays_gc(void)
+/**
+* Mark all inaccessible arrays and return the number of marked arrays
+**/
+static uint32_t mark_arrays(uint32_t* marked_arrays)
 {
+	word_t mem_data;
+	word_t ref;
+	uint32_t num_marked = 0;
 
+	for (int mem_ptr = 0; mem_ptr <= g_cpu->sp; mem_ptr++)
+	{
+		mem_data = g_cpu->stack[mem_ptr];
+		if (mem_data < 0xAA00000A || mem_data > 0xAAFFFFFA)
+		{
+			// Entry in memory is definately not an array reference
+			continue;
+		}
+
+		for (uint32_t arr_id_ptr = 0; arr_id_ptr < arr_id_mem.size; arr_id_ptr++)
+		{
+			ref = arr_id_mem.refs[arr_id_ptr];
+			if (ref == 0)
+			{
+				// Skip unclaimed (0) array reference
+				continue;
+			}
+
+			if (mem_data == ref)
+			{
+				marked_arrays[num_marked++] = ref_to_index(ref);
+				break;
+			}
+		}
+	}
+
+	return num_marked + 1;
+}
+
+
+/**
+* Sweep all inaccessible arrays
+**/
+static void sweep_arrays(uint32_t* marked_arrays, uint32_t num_marked)
+{
+	for (uint32_t i = 0, j = 0; i < arr_id_mem.size; i++)
+	{
+		if (arr_id_mem.refs[i] == 0)
+		{
+			continue;
+		}
+		if (marked_arrays[j] == i)
+		{
+			j++;
+			continue;
+		}
+
+		// Remove array
+		arr_id_mem.refs[i] = 0;
+		free((word_t*)arr_id_mem.ptrs[i]);
+		arr_id_mem.ptrs[i] = 0;
+	}
+}
+
+
+void gc_arrays(void)
+{
+	uint32_t marked_arrays[arr_id_mem.size];
+	uint32_t num_marked;
+	
+	num_marked = mark_arrays(marked_arrays);
+	sweep_arrays(marked_arrays, num_marked);
 }
 
 

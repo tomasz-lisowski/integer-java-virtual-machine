@@ -296,7 +296,7 @@ static inline void exec_op_iastore(void)
 
 static inline void exec_op_gc(void)
 {
-	arrays_gc();
+	gc_arrays();
 }
 
 
