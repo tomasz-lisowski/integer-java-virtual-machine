@@ -6,6 +6,7 @@
 #include "config.h"
 #include "loader.h"
 #include "util.h"
+#include "interpreter.h"
 
 
 /**

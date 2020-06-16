@@ -182,7 +182,7 @@ static inline void exec_op_ireturn(void)
 	g_cpu->fp = stack_pop();
 	g_cpu->nv = stack_pop();
 	g_cpu->lv = stack_pop();
-	g_cpu->sp -= old_nv; // Remove all local variables from stack
+	g_cpu->sp -= old_nv; // Remove all local variables and arguments from stack
 	stack_push(ret_val);
 }
 
@@ -302,9 +302,6 @@ static inline void exec_op_gc(void)
 
 void run(void)
 {
-	// Reset interpreter state
-	next_op_wide = false;
-	
 #ifdef DEBUG
 	dprintf("[VM START]\n");
 #endif
@@ -464,4 +461,10 @@ bool finished(void)
 	{
 		return false;
 	}
+}
+
+
+void init_interpreter(void)
+{
+	next_op_wide = false;
 }

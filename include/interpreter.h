@@ -36,4 +36,10 @@ bool step(void);
 bool finished(void);
 
 
+/**
+* Reset interpreter state to default/initial values
+**/
+void init_interpreter(void);
+
+
 #endif

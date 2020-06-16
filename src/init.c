@@ -184,10 +184,9 @@ int init_ijvm(char* binary_path)
 	init_registers();
 	init_stack();
 	init_cpu_flags();
-
-
 	set_output(stdout);
 	set_input(stdin);
+	init_interpreter();
 	// At this point the CPU memory is well defined
 
 	return 0;
