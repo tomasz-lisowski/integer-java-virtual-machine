@@ -300,18 +300,44 @@ static inline void exec_op_gc(void)
 }
 
 
+static inline void exec_op_netbind(void)
+{
+
+}
+
+
+static inline void exec_op_netconnect(void)
+{
+
+}
+
+
+static inline void exec_op_netin(void)
+{
+
+}
+
+
+static inline void exec_op_netout(void)
+{
+
+}
+
+
+static inline void exec_op_netclose(void)
+{
+
+}
+
+
 void run(void)
 {
-#ifdef DEBUG
 	dprintf("[VM START]\n");
-#endif
 	while (!finished())
 	{
 		step();
 	}
-#ifdef DEBUG
 	dprintf("[VM STOP]\n");
-#endif
 }
 
 
@@ -408,10 +434,23 @@ bool step(void)
 	case OP_GC:
 		exec_op_gc();
 		break;
+	case OP_NETBIND:
+		exec_op_netbind();
+		break;
+	case OP_NETCONNECT:
+		exec_op_netconnect();
+		break;
+	case OP_NETIN:
+		exec_op_netin();
+		break;
+	case OP_NETOUT:
+		exec_op_netout();
+		break;
+	case OP_NETCLOSE:
+		exec_op_netclose();
+		break;
 	default:
-#ifdef DEBUG
 		dprintf("[INVALID OP 0x%X]\n", (g_cpu->code_mem)[g_cpu->pc - 1]);
-#endif
 		g_cpu->error_flag = true;
 	}
 
@@ -442,7 +481,6 @@ bool finished(void)
 
 	if (end_of_code || cpu_err || cpu_halt)
 	{
-#ifdef DEBUG
 		if (cpu_halt)
 		{
 			dprintf("[HALT_FLAG]\n");
@@ -454,7 +492,6 @@ bool finished(void)
 		else if (end_of_code) {
 			dprintf("[TEXT_END]\n");
 		}
-#endif
 		return true;
 	}
 	else

@@ -45,11 +45,10 @@ void destroy_all_arrays(void);
 void gc_arrays(void);
 
 
-#ifdef DEBUG
 /**
 * Print out all active array references
 **/
 void print_arr_refs(bool compact);
-#endif
+
 
 #endif

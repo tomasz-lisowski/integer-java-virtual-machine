@@ -21,7 +21,6 @@ uint64_t power(uint32_t base, uint32_t power)
 }
 
 
-#ifdef DEBUG
 const char* op_decode(byte_t op)
 {
     switch (op)
@@ -109,6 +108,21 @@ const char* op_decode(byte_t op)
         break;
     case OP_GC:
         return "GC";
+        break;
+    case OP_NETBIND:
+        return "NETBIND";
+        break;
+    case OP_NETCONNECT:
+        return "NETCONNECT";
+        break;
+    case OP_NETIN:
+        return "NETIN";
+        break;
+    case OP_NETOUT:
+        return "NETOUT";
+        break;
+    case OP_NETCLOSE:
+        return "NETCLOSE";
         break;
     default:
         return "NULL";
@@ -258,6 +272,3 @@ void print_cpu_local_vars(bool compact)
         }
     }
 }
-
-
-#endif

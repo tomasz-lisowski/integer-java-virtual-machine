@@ -16,9 +16,7 @@ static bool check_file_signature(uint32_t magic_number)
 {
     if (swap_uint32(magic_number) != MAGIC_NUMBER)
     {
-#ifdef DEBUG
         dprintf("[BAD FILE SIGNATURE]\n");
-#endif
         return false;
     }
     else
@@ -37,6 +35,7 @@ static bool load_consts(FILE* f)
 {
     size_t num_elements_read;
 
+    // Read origin
     uint32_t const_pool_origin;
     num_elements_read = fread(&(const_pool_origin), sizeof(const_pool_origin), 1, f);
     if (num_elements_read != 1)
@@ -45,7 +44,7 @@ static bool load_consts(FILE* f)
     }
     const_pool_origin = swap_uint32(const_pool_origin);
 
-
+    // Read size
     num_elements_read = fread(&(g_cpu->const_mem_size), sizeof(g_cpu->const_mem_size), 1, f);
     if (num_elements_read != 1)
     {
@@ -53,6 +52,7 @@ static bool load_consts(FILE* f)
     }
     g_cpu->const_mem_size = (int)swap_uint32((uint32_t)g_cpu->const_mem_size);
 
+    // Read consts
     g_cpu->const_mem = (word_t*)malloc((uint32_t)g_cpu->const_mem_size * sizeof(word_t));
     if (g_cpu->const_mem == NULL)
     {
@@ -81,6 +81,7 @@ static bool load_code(FILE* f)
 {
     size_t num_elements_read;
 
+    // Read origin
     uint32_t text_origin;
     num_elements_read = fread(&(text_origin), sizeof(text_origin), 1, f);
     if (num_elements_read != 1)
@@ -89,6 +90,7 @@ static bool load_code(FILE* f)
     }
     text_origin = swap_uint32(text_origin);
 
+    // Read size
     num_elements_read = fread(&(g_cpu->code_mem_size), sizeof(g_cpu->code_mem_size), 1, f);
     if (num_elements_read != 1)
     {
@@ -96,6 +98,7 @@ static bool load_code(FILE* f)
     }
     g_cpu->code_mem_size = (int)swap_uint32((uint32_t)g_cpu->code_mem_size);
 
+    // Read code
     g_cpu->code_mem = (byte_t*)malloc((uint32_t)g_cpu->code_mem_size * sizeof(byte_t));
     if (g_cpu->code_mem == NULL)
     {
@@ -113,28 +116,30 @@ static bool load_code(FILE* f)
 
 bool load_bin(char* path)
 {
-    size_t num_elements_read;
+    uint32_t num_elements_read;
     uint32_t magic_number;
     FILE* f;
 
     if (!(f = fopen(path, "rb")))
     {
-#ifdef DEBUG
         dprintf("[FILE COULD NOT BE OPENED]\n");
-#endif
         return false;
     }
 
     num_elements_read = fread(&(magic_number), sizeof(magic_number), 1, f);
-    if (num_elements_read != 1 || (!check_file_signature((uint32_t)magic_number) || (!load_consts(f) || (!load_code(f)))))
+
+    if (num_elements_read != 1 ||
+        !check_file_signature((uint32_t)magic_number) ||
+        !load_consts(f) ||
+        !load_code(f)
+        )
     {
+        dprintf("[BAD FILE FORMAT]\n");
         fclose(f);
         return false;
     }
 
-    fclose(f);
-#ifdef DEBUG
     dprintf("[LOAD OK]\n");
-#endif
+    fclose(f);
     return true;
 }

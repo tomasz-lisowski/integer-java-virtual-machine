@@ -104,7 +104,8 @@ static uint32_t get_num_local_vars_main(void)
 			continue;
 		}
 
-		/*case OP_DUP:
+		/*
+		case OP_DUP:
 		case OP_ERR:
 		case OP_HALT:
 		case OP_IADD:
@@ -120,8 +121,14 @@ static uint32_t get_num_local_vars_main(void)
 		case OP_NEWARRAY:
 		case OP_IALOAD:
 		case OP_IASTORE:
+		case OP_NETBIND:
+		case OP_NETCONNECT:
+		case OP_NETIN:
+		case OP_NETOUT:
+		case OP_NETCLOSE:
 			// All these instructions don't take arguments
-			continue;*/
+			continue;
+		*/
 	}
 	return var_num;
 }
