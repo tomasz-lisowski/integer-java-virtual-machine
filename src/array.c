@@ -235,7 +235,7 @@ static uint32_t mark_arrays(uint32_t* marked_arrays)
 	for (int mem_ptr = 0; mem_ptr <= g_cpu->sp; mem_ptr++)
 	{
 		mem_data = g_cpu->stack[mem_ptr];
-		if (mem_data < 0xAA00000A || mem_data > 0xAAFFFFFA)
+		if ((uint32_t)mem_data < (uint32_t)0xAA00000A || (uint32_t)mem_data > (uint32_t)0xAAFFFFFA)
 		{
 			// Entry in memory is definately not an array reference
 			continue;
@@ -273,7 +273,7 @@ static void sweep_arrays(uint32_t* marked_arrays, uint32_t num_marked)
 		{
 			continue;
 		}
-		if (marked_arrays[j] == i)
+		if (j < num_marked && marked_arrays[j] == i)
 		{
 			j++;
 			continue;

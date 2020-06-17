@@ -116,7 +116,7 @@ static bool load_code(FILE* f)
 
 bool load_bin(char* path)
 {
-    uint32_t num_elements_read;
+    size_t num_elements_read;
     uint32_t magic_number;
     FILE* f;
 
