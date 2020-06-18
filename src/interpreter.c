@@ -215,6 +215,8 @@ static inline void exec_op_invokevirtual(void)
 	g_cpu->nv = num_args + num_locals;
 	g_cpu->lv = g_cpu->fp - g_cpu->nv;
 
+	memset(&g_cpu->stack[g_cpu->lv + num_args], 0, num_locals * sizeof(uint32_t)); // Init local variables to 0
+
 	/**
 	* Stack after call:
 	*   
