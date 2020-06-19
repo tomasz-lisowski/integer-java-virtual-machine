@@ -1,6 +1,47 @@
 #include "interpreter.h"
 
 
+// Declarations for static functions
+static inline byte_t get_arg_byte(void);
+static inline short get_arg_short(void);
+
+static inline void exec_op_nop(void);
+static inline void exec_op_bipush(void);
+static inline void exec_op_ldc_w(void);
+static inline void exec_op_iload(void);
+static inline void exec_op_istore(void);
+static inline void exec_op_pop(void);
+static inline void exec_op_dup(void);
+static inline void exec_op_swap(void);
+static inline void exec_op_iadd(void);
+static inline void exec_op_isub(void);
+static inline void exec_op_iand(void);
+static inline void exec_op_iinc(void);
+static inline void exec_op_ifeq(void)
+static inline void exec_op_iflt(void);
+static inline void exec_op_icmpeq(void);
+static inline void exec_op_goto(void);
+static inline void exec_op_ireturn(void);
+static inline void exec_op_ior(void);
+static inline void exec_op_invokevirtual(void);
+static inline void exec_op_wide(void);
+static inline void exec_op_in(void);
+static inline void exec_op_out(void);
+static inline void exec_op_err(void);
+static inline void exec_op_halt(void);
+
+static inline void exec_op_newarray(void);
+static inline void exec_op_iaload(void);
+static inline void exec_op_iastore(void);
+static inline void exec_op_gc(void);
+
+static inline void exec_op_netbind(void);
+static inline void exec_op_netconnect(void);
+static inline void exec_op_netin(void);
+static inline void exec_op_netout(void);
+static inline void exec_op_netclose(void);
+
+
 static bool next_op_wide = false;
 
 

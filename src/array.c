@@ -1,5 +1,17 @@
 #include "array.h"
 
+
+// Declarations for static functions
+static void init_arr_id_mem(void);
+static inline uint32_t ref_to_index(word_t arr_ref);
+static inline word_t index_to_ref(uint32_t i);
+static bool resize_arr_id_mem(void);
+static uint32_t get_unclaimed_array_index(void);
+static bool create_array(uint32_t arr_i, uint32_t count);
+static uint32_t mark_arrays(uint32_t* marked_arrays);
+static void sweep_arrays(uint32_t* marked_arrays, uint32_t num_marked);
+
+
 static const uint32_t k_index_to_ref = 0xAA00000A;
 static const uint32_t k_ref_to_index = 0x00FFFFF0;
 static const uint32_t k_max_uint32_t = (~(uint32_t)0); // Used as a special value because there can never be this many arrays

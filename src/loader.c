@@ -1,6 +1,13 @@
 #include "loader.h"
 #include "util.h"
 
+
+// Declarations for static functions
+static bool check_file_signature(uint32_t magic_number);
+static bool load_consts(FILE* f);
+static bool load_code(FILE* f);
+
+
 /**
 * Unique file signature of IJVM libraries
 **/

@@ -7,6 +7,10 @@
 #include "util.h"
 
 
+// Declarations for static functions
+static void print_usage(void);
+
+
 static void print_usage(void)
 {
     printf("Integer Java Virtual Machine\n");
