@@ -21,6 +21,19 @@ uint64_t power(uint32_t base, uint32_t power)
 }
 
 
+char* str_dup(char* src)
+{
+    size_t len = strlen(src) + 1;
+    char* dst = (char*)malloc(len);
+    if (dst == NULL)
+    {
+        return NULL;
+    }
+    memcpy(dst, src, len);
+    return dst;
+}
+
+
 const char* op_decode(byte_t op)
 {
     switch (op)
