@@ -205,7 +205,7 @@ word_t start_array_creation(word_t count)
 }
 
 
-void destroy_all_arrays(void)
+void destroy_arrays(void)
 {
 	word_t* arr_ptr;
 	for (uint32_t i = 0; i < arr_id_mem.size; i++)
@@ -219,7 +219,6 @@ void destroy_all_arrays(void)
 	arr_id_mem.size = 0;
 	arr_id_mem.refs = NULL;
 	arr_id_mem.ptrs = NULL;
-	dprintf("[DESTROY ARRAYS]\n");
 }
 
 

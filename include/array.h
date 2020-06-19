@@ -36,7 +36,7 @@ word_t start_array_creation(word_t count);
 /**
 * Free all arrays and all other data used to manage them
 **/
-void destroy_all_arrays(void);
+void destroy_arrays(void);
 
 
 /**

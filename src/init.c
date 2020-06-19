@@ -159,7 +159,7 @@ static void init_stack(void)
 	g_cpu->nv = (int)(main_num_vars);
 	g_cpu->fp = (int)(main_num_vars);
 
-	memset(g_cpu->stack, 0, g_cpu->nv * sizeof(uint32_t)); // Init local variables to 0
+	memset(g_cpu->stack, 0, (uint32_t)g_cpu->nv * sizeof(uint32_t)); // Init local variables to 0
 }
 
 

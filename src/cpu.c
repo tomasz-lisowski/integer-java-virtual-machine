@@ -1,6 +1,10 @@
 #include "cpu.h"
 
 
+// Declarations for static functions
+static bool octuple_stack_size(void);
+
+
 FILE* restrict g_out_file;
 FILE* restrict g_in_file;
 
@@ -49,7 +53,13 @@ word_t stack_pop(void)
 }
 
 
-bool octuple_stack_size(void)
+/**
+* Makes the stack 8 times larger
+* Returns  true on success
+*          false on failure
+* Toggles the error flag if stack is resized beyond 4294967296
+**/
+static bool octuple_stack_size(void)
 {
     if ((uint64_t)(g_cpu->stack_size * 4) >= 4294967296)
     {
@@ -100,3 +110,10 @@ void update_local_variable(word_t new_val, int i)
     }
 }
 
+
+void destroy_cpu(void)
+{
+    free(g_cpu->stack);
+    free(g_cpu->code_mem);
+    free(g_cpu->const_mem);
+}

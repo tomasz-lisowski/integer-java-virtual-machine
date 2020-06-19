@@ -57,15 +57,6 @@ word_t stack_pop(void);
 
 
 /**
-* Makes the stack 8 times larger
-* Returns  true on success
-*          false on failure
-* Toggles the error flag if stack is resized beyond 4294967296
-**/
-bool octuple_stack_size(void);
-
-
-/**
 * Returns the i'th constant from constant memory
 **/
 word_t get_constant(int i);
@@ -81,6 +72,12 @@ word_t get_local_variable(int i);
 * Update the value of i'th local variable in current frame (or create one if it does not exist)
 **/
 void update_local_variable(word_t new_val, int i);
+
+
+/**
+* Remove all data associated with the CPU
+**/
+void destroy_cpu(void);
 
 
 #endif
