@@ -1,6 +1,20 @@
 #include "util.h"
 
 
+byte_t get_code_byte(int i)
+{
+    return (g_cpu->code_mem)[i];
+}
+
+
+short get_code_short(int i)
+{
+    byte_t b1 = (g_cpu->code_mem)[i];
+    byte_t b2 = (g_cpu->code_mem)[i + 1];
+    return (short)((b1 << 8) | b2);
+}
+
+
 uint32_t swap_uint32(uint32_t num)
 {
     return ((num >> 24) & 0xff) | ((num << 8) & 0xff0000) | ((num >> 8) & 0xff00) | ((num << 24) & 0xff000000);

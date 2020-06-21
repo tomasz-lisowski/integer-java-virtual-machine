@@ -1,5 +1,6 @@
 #include "debug_data_loader.h"
 
+
 // Declarations for static functions
 static int64_t get_block_size(FILE* f);
 static bool skip_block(FILE* f);
@@ -141,15 +142,15 @@ bool load_debug_data(char* prog_path)
 
 	if (!(f = fopen(prog_path, "rb")))
 	{
-		dprintf("[FILE COULD NOT BE OPENED]\n");
+		dprintf("File could not be opened.\n");
 		return false;
 	}
 
 	fseek(f, 4, SEEK_CUR); // Skip magic number
 	read_success = skip_block(f) ? (read_success && true) : false; // Skip constants
 	read_success = skip_block(f) ? (read_success && true) : false; // Skip code
-	read_success = read_symbol_block(f, &g_debug_data->func) ? (read_success && true) : false; // Read function symbols
-	read_success = read_symbol_block(f, &g_debug_data->label) ? (read_success && true) : false; // Read label symbols
+	read_success = read_symbol_block(f, &g_debug_data->func_label) ? (read_success && true) : false; // Read function symbols
+	read_success = read_symbol_block(f, &g_debug_data->sec_label) ? (read_success && true) : false; // Read section symbols
 	if (!read_success)
 	{
 		destroy_debug_data();
@@ -157,24 +158,14 @@ bool load_debug_data(char* prog_path)
 		return false;
 	}
 
-	// For debugging purposes ONLY
+	if (g_debug_data->func_label.num == 0) // Can't have a section without a function
 	{
-		if (false)
-		{
-			printf("test\n");
-			for (uint32_t i = 0; i < g_debug_data->func.num; i++)
-			{
-				printf("Func symbol: name: %s, addr: 0x%X\n", &g_debug_data->func.names[g_debug_data->func.names_start[i]], g_debug_data->func.addr[i]);
-			}
-
-			for (uint32_t i = 0; i < g_debug_data->label.num; i++)
-			{
-				printf("Label symbol: name: %s, addr: 0x%X\n", &g_debug_data->label.names[g_debug_data->label.names_start[i]], g_debug_data->label.addr[i]);
-			}
-		}
+		printf("There are no debug symbols in this binary.\n");
 	}
-
-	dprintf("[LOAD DBG OK]\n");
+	else
+	{
+		printf("Debug symbols have been loaded.\n");
+	}
 	fclose(f);
 	return true;
 }
@@ -205,13 +196,25 @@ static void destroy_symbol_block(SymbolBlock_t* symb_block)
 
 void init_debug_data(void)
 {
-	init_symbol_block(&g_debug_data->func);
-	init_symbol_block(&g_debug_data->label);
+	init_symbol_block(&g_debug_data->func_label);
+	init_symbol_block(&g_debug_data->sec_label);
 }
 
 
 void destroy_debug_data(void)
 {
-	destroy_symbol_block(&g_debug_data->func);
-	destroy_symbol_block(&g_debug_data->label);
+	destroy_symbol_block(&g_debug_data->func_label);
+	destroy_symbol_block(&g_debug_data->sec_label);
+}
+
+
+char* get_func_name(uint32_t i)
+{
+	return str_dup(&g_debug_data->func_label.names[g_debug_data->func_label.names_start[i]]);
+}
+
+
+char* get_section_name(uint32_t i)
+{
+	return str_dup(&g_debug_data->sec_label.names[g_debug_data->sec_label.names_start[i]]);
 }

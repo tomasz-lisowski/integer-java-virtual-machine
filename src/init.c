@@ -1,24 +1,11 @@
 #include "init.h"
 
 
-/**
-* Returns the i'th byte from code memory
-**/
-static byte_t get_arg_byte(int i)
-{
-	return (g_cpu->code_mem)[i];
-}
-
-
-/**
-* Returns a short starting at i'th byte from code memory
-**/
-static short get_arg_short(int i)
-{
-	byte_t b1 = (g_cpu->code_mem)[i];
-	byte_t b2 = (g_cpu->code_mem)[i + 1];
-	return (short)((b1 << 8) | b2);
-}
+// Declarations for static functions
+static uint32_t get_num_local_vars_main(void);
+static void init_stack(void);
+static void init_registers(void);
+static void init_cpu_flags(void);
 
 
 /**
@@ -26,7 +13,7 @@ static short get_arg_short(int i)
 **/
 static uint32_t get_num_local_vars_main(void)
 {
-	uint32_t addr_first_method_after_main = (~(uint32_t)0); // = SIZE_MAX
+	uint32_t addr_first_method_after_main = SIZE_MAX_UINT32_T;
 	uint32_t var_num = 0;
 
 	// Temporary variables to keep track of loop state
@@ -45,7 +32,7 @@ static uint32_t get_num_local_vars_main(void)
 		op = (g_cpu->code_mem)[i];
 
 		// Don't iterate over instructions of another method
-		if (i != (~(uint32_t)0) && i + 2 > addr_first_method_after_main)
+		if (i != SIZE_MAX_UINT32_T && i + 2 > addr_first_method_after_main)
 		{
 			break;
 		}
@@ -57,7 +44,7 @@ static uint32_t get_num_local_vars_main(void)
 			continue;
 
 		case OP_INVOKEVIRTUAL:
-			addr = (uint32_t)get_constant(get_arg_short((int)i + 1));
+			addr = (uint32_t)get_constant(get_code_short((int)i + 1));
 			if (addr < addr_first_method_after_main)
 			{
 				addr_first_method_after_main = addr;
@@ -70,13 +57,13 @@ static uint32_t get_num_local_vars_main(void)
 		case OP_IINC:
 			if (next_wide)
 			{
-				var_index = (uint32_t)get_arg_short((int)i + 1);
+				var_index = (uint32_t)get_code_short((int)i + 1);
 				next_wide = false;
 				i += 2;
 			}
 			else
 			{
-				var_index = (uint32_t)get_arg_byte((int)i + 1);
+				var_index = (uint32_t)get_code_byte((int)i + 1);
 				i += 1;
 			}
 

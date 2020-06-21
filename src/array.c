@@ -14,7 +14,7 @@ static void sweep_arrays(uint32_t* marked_arrays, uint32_t num_marked);
 
 static const uint32_t k_index_to_ref = 0xAA00000A;
 static const uint32_t k_ref_to_index = 0x00FFFFF0;
-static const uint32_t k_max_uint32_t = (~(uint32_t)0); // Used as a special value because there can never be this many arrays
+static const uint32_t k_max_uint32_t = SIZE_MAX_UINT32_T; // Used as a special value because there can never be this many arrays
 
 
 /**
@@ -266,6 +266,8 @@ static uint32_t mark_arrays(uint32_t* marked_arrays)
 				marked_arrays[num_marked++] = ref_to_index(ref);
 				break;
 			}
+
+			// TODO: Scan through array memory in case a reference is stored there
 		}
 	}
 

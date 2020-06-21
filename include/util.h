@@ -11,6 +11,21 @@
 #include "cpu.h"
 
 
+#define SIZE_MAX_UINT32_T (~(uint32_t)0)
+
+
+/**
+* Returns the i'th byte, from code memory
+**/
+byte_t get_code_byte(int i);
+
+
+/**
+* Returns a short starting at i'th byte, from code memory
+**/
+short get_code_short(int i);
+
+
 /**
 * Swap endianness
 **/

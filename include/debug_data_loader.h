@@ -25,8 +25,8 @@ typedef struct SymbolBlock_t
 **/
 typedef struct DebugData_t
 {
-	SymbolBlock_t func;
-	SymbolBlock_t label;
+	SymbolBlock_t func_label; // Function labels
+	SymbolBlock_t sec_label; // Function section labels
 }DebugData_t;
 
 
@@ -53,6 +53,18 @@ void init_debug_data(void);
 * Remove debug data from memory
 **/
 void destroy_debug_data(void);
+
+
+/**
+* Return the i'th function name from debug data
+**/
+char* get_func_name(uint32_t i);
+
+
+/**
+* Return the i'th section name from debug data
+**/
+char* get_section_name(uint32_t i);
 
 
 #endif

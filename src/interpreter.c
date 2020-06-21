@@ -17,7 +17,7 @@ static inline void exec_op_iadd(void);
 static inline void exec_op_isub(void);
 static inline void exec_op_iand(void);
 static inline void exec_op_iinc(void);
-static inline void exec_op_ifeq(void)
+static inline void exec_op_ifeq(void);
 static inline void exec_op_iflt(void);
 static inline void exec_op_icmpeq(void);
 static inline void exec_op_goto(void);
