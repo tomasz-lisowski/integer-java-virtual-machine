@@ -8,7 +8,7 @@ static void print_all_breakpoints(void);
 static void print_func_calls(uint32_t n);
 static void print_breakpoint_msg(uint32_t id);
 
-static char* addr_to_func_name(uint32_t addr);
+static const char* addr_to_func_name(uint32_t addr);
 static uint32_t label_name_to_addr(char* label_name);
 static uint32_t at_breakpoint(void);
 
@@ -51,7 +51,7 @@ static void print_frame_stack(void)
 	printf("%15s [", "Stack");
 	if (g_cpu->sp >= 0)
 	{
-		for (uint32_t i = (uint32_t)g_cpu->fp; i <= g_cpu->sp; i++)
+		for (uint32_t i = (uint32_t)g_cpu->fp; i <= (uint32_t)g_cpu->sp; i++)
 		{
 			printf(" 0x%X", (g_cpu->stack)[i]);
 		}
@@ -82,7 +82,7 @@ static void print_all_breakpoints(void)
 	}
 
 	printf("Num      Address    Where\n");
-	for (uint32_t i = 0; i < g_dbg_state->brkpts.num; i++)
+	for (uint32_t i = 0; i < (uint32_t)g_dbg_state->brkpts.num; i++)
 	{
 		func_addr = g_dbg_state->brkpts.addrs[i];
 		printf("%-8i 0x%08X %s\n", i + 1, func_addr, addr_to_func_name(func_addr));
@@ -97,19 +97,17 @@ static void print_all_breakpoints(void)
 static void print_func_calls(uint32_t n)
 {
 	uint32_t func_addr = 0;
-	char* func_name = NULL;
 	uint32_t calls_printed = 0;
 	uint32_t hist_offset = g_dbg_state->call_history_top;
 
 	for (; hist_offset > 0 && (calls_printed != n || n == 0);)
 	{
 		func_addr = g_dbg_state->call_history[--hist_offset];
-		func_name = addr_to_func_name(func_addr);
 		if (n == 0)
 		{
 			printf("#%i  ", calls_printed + 1);
 		}
-		printf("0x%08X %s (", func_addr, func_name);
+		printf("0x%08X %s (", func_addr, addr_to_func_name(func_addr));
 		if (hist_offset > 0)
 		{
 			for (uint32_t arg_offset = g_dbg_state->call_history[--hist_offset]; arg_offset > 0; arg_offset--)
@@ -147,9 +145,9 @@ static void print_breakpoint_msg(uint32_t id)
 * Return  function name string on success
 *         "??" string on failure (e.g. when there are no symbols in the binary)
 **/
-static char* addr_to_func_name(uint32_t addr)
+static const char* addr_to_func_name(uint32_t addr)
 {
-	char* parent_symb_name = "??";
+	char* parent_symb_name = NULL;
 
 	if (g_debug_data->func_label.num == 0)
 	{
@@ -170,6 +168,11 @@ static char* addr_to_func_name(uint32_t addr)
 			parent_symb_name = get_func_name(i - 1);
 			break;
 		}
+	}
+
+	if (parent_symb_name == NULL)
+	{
+		return "??";
 	}
 	return parent_symb_name;
 }
@@ -224,7 +227,7 @@ static uint32_t label_name_to_addr(char* label_name)
 static uint32_t at_breakpoint(void)
 {
 	uint32_t curr_pc = (uint32_t)g_cpu->pc;
-	for (uint32_t i = 0; i < g_dbg_state->brkpts.num; i++)
+	for (uint32_t i = 0; i < (uint32_t)g_dbg_state->brkpts.num; i++)
 	{
 		if (g_dbg_state->brkpts.addrs[i] == curr_pc)
 		{
@@ -267,8 +270,8 @@ static void store_func_call(void)
 	uint32_t* tmp_call_history;
 	uint32_t call_elements_num;
 
-	func_addr = get_constant(get_code_short(g_cpu->pc + 1));
-	func_num_args = get_code_short(func_addr);
+	func_addr = (uint32_t)get_constant(get_code_short(g_cpu->pc + 1));
+	func_num_args = (uint32_t)get_code_short((int)func_addr);
 	call_elements_num = 1 + 1 + func_num_args;
 
 	// Check if call history can fit the new call
@@ -289,7 +292,7 @@ static void store_func_call(void)
 	// Save all elements of the call
 	for (uint32_t i = 0; i < func_num_args; i++)
 	{
-		g_dbg_state->call_history[g_dbg_state->call_history_top++] = g_cpu->stack[g_cpu->sp - i];
+		g_dbg_state->call_history[g_dbg_state->call_history_top++] = (uint32_t)g_cpu->stack[(uint32_t)g_cpu->sp - i];
 	}
 	g_dbg_state->call_history[g_dbg_state->call_history_top++] = func_num_args;
 	g_dbg_state->call_history[g_dbg_state->call_history_top++] = func_addr;
@@ -312,8 +315,9 @@ static void store_func_call(void)
 
 static void remove_last_func_call(void)
 {
+	uint32_t func_num_args;
 	g_dbg_state->call_history_top -= 2; // Skip empty element and function address
-	uint32_t func_num_args = g_dbg_state->call_history[g_dbg_state->call_history_top];
+	func_num_args = g_dbg_state->call_history[g_dbg_state->call_history_top];
 	g_dbg_state->call_history_top -= func_num_args;
 }
 
@@ -528,7 +532,7 @@ static void exec_break(char* offset)
 	offset_num = label_name_to_addr(offset);
 	if (offset_num == SIZE_MAX_UINT32_T)
 	{
-		offset_num = strtol(offset, NULL, 0);
+		offset_num = (uint32_t)strtol(offset, NULL, 0);
 		if (g_debug_data->func_label.num > 0)
 		{
 			printf("Label with the name \"%s\" was not found.\n", offset);
@@ -649,11 +653,11 @@ static void exec_quit(void)
 static void cmd_decoder(char* whole_cmd)
 {
 	char cmd_cpy[strlen(whole_cmd)];
-	strcpy(cmd_cpy, whole_cmd);
-
 	char* cmd;
 	char* arg1 = NULL;
 	char* arg2 = NULL;
+
+	strcpy(cmd_cpy, whole_cmd);
 	cmd = strtok(cmd_cpy, " ");
 	arg1 = strtok(NULL, " ");
 	arg2 = strtok(NULL, " ");
@@ -801,9 +805,22 @@ void destroy_debugger(void)
 }
 
 
+static void print_usage(const char* binary_path)
+{
+	printf("IJVM Debugger\n");
+	printf("Usage: %s <path/to/binary.ijvm> [<in_file>] [<out_file>]\n", binary_path);
+}
+
+
 int main(int argc, char** argv)
 {
 	char* cmd;
+
+	if (argc != 1)
+	{
+		print_usage(argv[0]);
+	}
+
 	printf("IJVM Debugger\n");
 	printf("For help, type \"help\"\n");
 

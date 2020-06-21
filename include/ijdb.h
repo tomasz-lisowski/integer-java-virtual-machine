@@ -27,7 +27,7 @@ typedef enum EProgramState { EMPTY, LOADED, STARTED, FINISHED }EProgramState;
 **/
 typedef struct Breakpoints_t
 {
-	int32_t num;
+	uint32_t num;
 	uint32_t* addrs;
 }Breakpoints_t;
 
