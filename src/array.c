@@ -239,17 +239,24 @@ void destroy_arrays(void)
 **/
 static uint32_t mark_arrays(uint32_t* marked_arrays)
 {
+	uint32_t num_marked = 0;
 	word_t mem_data;
 	word_t ref;
-	uint32_t num_marked = 0;
 
+	// For scanning array element
+	word_t arr_ref;
+	uint32_t arr_i;
+	word_t* arr_ptr;
+	uint32_t arr_size;
+
+	// Look for array references on the operand stack and in local variables
 	for (int mem_ptr = 0; mem_ptr <= g_cpu->sp; mem_ptr++)
 	{
 		mem_data = g_cpu->stack[mem_ptr];
-		if ((uint32_t)mem_data < (uint32_t)0xAA00000A || (uint32_t)mem_data > (uint32_t)0xAAFFFFFA)
+		if ((uint32_t)mem_data < (uint32_t)0xAA00000A || 
+			(uint32_t)mem_data > (uint32_t)0xAAFFFFFA) 
 		{
-			// Entry in memory is definately not an array reference
-			continue;
+			continue; // Entry in memory is definately not an array reference
 		}
 
 		for (uint32_t arr_id_ptr = 0; arr_id_ptr < arr_id_mem.size; arr_id_ptr++)
@@ -257,8 +264,7 @@ static uint32_t mark_arrays(uint32_t* marked_arrays)
 			ref = arr_id_mem.refs[arr_id_ptr];
 			if (ref == 0)
 			{
-				// Skip unclaimed (0) array reference
-				continue;
+				continue; // Skip unclaimed (0) array reference
 			}
 
 			if (mem_data == ref)
@@ -266,12 +272,52 @@ static uint32_t mark_arrays(uint32_t* marked_arrays)
 				marked_arrays[num_marked++] = ref_to_index(ref);
 				break;
 			}
-
-			// TODO: Scan through array memory in case a reference is stored there
 		}
 	}
 
-	return num_marked + 1;
+	// Look for array references inside of arrays that are reachable via the stack
+	for (uint32_t i = 0; i < num_marked; i++)
+	{
+		arr_ref = index_to_ref(marked_arrays[i]);
+		if (arr_ref == 0)
+		{
+			continue; // Skip unclaimed (0) array reference
+		}
+
+		arr_i = ref_to_index(arr_ref);
+		arr_ptr = (word_t*)arr_id_mem.ptrs[arr_i];
+		arr_size = (uint32_t)arr_ptr[0];
+		for (uint32_t j = 1; j <= arr_size; j++)
+		{
+			if ((uint32_t)arr_ptr[j] < (uint32_t)0xAA00000A || 
+				(uint32_t)arr_ptr[j] > (uint32_t)0xAAFFFFFA ||
+				arr_ptr[j] == arr_ref)
+			{
+				/**
+				* Entry in array is definately not an array reference or
+				* an array stores a reference to itself.
+				**/
+				continue;
+			}
+
+			for (uint32_t arr_id_ptr = 0; arr_id_ptr < arr_id_mem.size; arr_id_ptr++)
+			{
+				ref = arr_id_mem.refs[arr_id_ptr];
+				if (ref == 0)
+				{
+					continue; // Skip unclaimed (0) array reference
+				}
+
+				if (arr_ptr[j] == ref)
+				{
+					marked_arrays[num_marked++] = ref_to_index(ref);
+					break;
+				}
+			}
+		}
+	}
+
+	return num_marked;
 }
 
 
