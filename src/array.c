@@ -8,8 +8,8 @@ static inline word_t index_to_ref(uint32_t i);
 static bool resize_arr_id_mem(void);
 static uint32_t get_unclaimed_array_index(void);
 static bool create_array(uint32_t arr_i, uint32_t count);
-static uint32_t mark_arrays(uint32_t* marked_arrays);
-static void sweep_arrays(uint32_t* marked_arrays, uint32_t num_marked);
+static void mark_arrays(bool* marked_arrays);
+static uint32_t sweep_arrays(bool* marked_arrays);
 
 
 static const uint32_t k_index_to_ref = 0xAA00000A;
@@ -37,14 +37,17 @@ static struct ArrIDMem
 **/
 static void init_arr_id_mem(void)
 {
+	uint32_t tmp_mem_size;
 	arr_id_mem.size = ARRAYS_MIN_NUM;
-	arr_id_mem.refs = (word_t*)calloc(arr_id_mem.size, sizeof(word_t));
-	arr_id_mem.ptrs = (uintptr_t*)calloc(arr_id_mem.size, sizeof(uintptr_t));
-
+	tmp_mem_size = arr_id_mem.size;
+	arr_id_mem.refs = (word_t*)calloc(tmp_mem_size, sizeof(word_t));
+	tmp_mem_size = arr_id_mem.size;
+	arr_id_mem.ptrs = (uintptr_t*)calloc(tmp_mem_size, sizeof(uintptr_t));
 	if (arr_id_mem.refs == NULL || arr_id_mem.ptrs == NULL)
 	{
-		g_cpu->error_flag = true;
-		return; // Could not allocate memory
+		fprintf(stderr, "[ERR] Failed to allocate memory. In \"array.c::init_arr_id_mem\".\n");
+		g_cpu->error_flag = true; // Could not allocate memory
+		return;
 	}
 }
 
@@ -75,32 +78,39 @@ static inline word_t index_to_ref(uint32_t i)
 **/
 static bool resize_arr_id_mem(void)
 {
-	word_t* old_refs = arr_id_mem.refs;
-	uintptr_t* old_ptrs = arr_id_mem.ptrs;
+	word_t* tmp_refs = arr_id_mem.refs;
+	uintptr_t* tmp_ptrs = arr_id_mem.ptrs;
+	uint32_t tmp_mem_size;
+
 	arr_id_mem.size *= 8;
-
-	arr_id_mem.refs = (word_t*)calloc(arr_id_mem.size, sizeof(word_t));
-	if (arr_id_mem.refs == NULL)
+	if (arr_id_mem.size > (k_ref_to_index >> 4))
 	{
-		arr_id_mem.size /= 8;
-		arr_id_mem.refs = old_refs;
-		g_cpu->error_flag = true; // Could not resize the references array
+		fprintf(stderr, "[ERR] Maximum number of arrays has been reached. In \"array.c::resize_arr_id_mem\".\n");
+		g_cpu->error_flag = true; // Program requires more arrays than are possible
 		return false;
 	}
 
-	arr_id_mem.ptrs = (uintptr_t*)calloc(arr_id_mem.size, sizeof(uintptr_t));
-	if (arr_id_mem.ptrs == NULL)
+	tmp_mem_size = arr_id_mem.size;
+	arr_id_mem.refs = (word_t*)calloc(tmp_mem_size, sizeof(word_t));
+	tmp_mem_size = arr_id_mem.size;
+	arr_id_mem.ptrs = (uintptr_t*)calloc(tmp_mem_size, sizeof(uintptr_t));
+	if (arr_id_mem.refs == NULL || arr_id_mem.ptrs == NULL)
 	{
-		arr_id_mem.size /= 8;
-		arr_id_mem.ptrs = old_ptrs;
-		g_cpu->error_flag = true; // Could not resize the pointers array
+		arr_id_mem.refs = tmp_refs;
+		arr_id_mem.ptrs = tmp_ptrs;
+		if (gc_arrays() != 0)
+		{
+			return resize_arr_id_mem(); // Run GC to be sure memory allocation error is not caused by garbage
+		}
+		fprintf(stderr, "[ERR] Failed to allocate memory. In \"array.c::resize_arr_id_mem\".\n");
+		g_cpu->error_flag = true; // Could not resize array(s)
 		return false;
 	}
 
-	memcpy(arr_id_mem.refs, old_refs, (arr_id_mem.size / 8) * sizeof(word_t));
-	memcpy(arr_id_mem.ptrs, old_ptrs, (arr_id_mem.size / 8) * sizeof(uintptr_t));
-	free(old_refs);
-	free(old_ptrs);
+	memcpy(arr_id_mem.refs, tmp_refs, (arr_id_mem.size / 8) * sizeof(word_t));
+	memcpy(arr_id_mem.ptrs, tmp_ptrs, (arr_id_mem.size / 8) * sizeof(uintptr_t));
+	free(tmp_refs);
+	free(tmp_ptrs);
 	return true;
 }
 
@@ -109,11 +119,11 @@ static bool resize_arr_id_mem(void)
 * Find an un-claimed array index in array identity memory
 * Return  array index on success
 *         0 on failure (it will try to resize and run GC before failing)
-* Sets CPU's error flag on failure.
 **/
 static uint32_t get_unclaimed_array_index(void)
 {
 	uint32_t arr_i = 0;
+	// Find an unclaimed reference in arr_id_mem.refs
 	for (; arr_i < arr_id_mem.size; arr_i++)
 	{
 		if (arr_id_mem.refs[arr_i] != 0)
@@ -123,14 +133,17 @@ static uint32_t get_unclaimed_array_index(void)
 		return arr_i;
 	}
 
+	// All references in arr_id_mem.refs are taken
 	if (resize_arr_id_mem() != false)
 	{
-		return arr_i + 1;
+		return arr_i;
 	}
 	else
 	{
-		// TODO: Run GC here then re-call self
-		g_cpu->error_flag = true; // Heap is full
+		if (gc_arrays() != 0)
+		{
+			return get_unclaimed_array_index(); // Run GC to be sure memory allocation error is not caused by garbage
+		}
 		return k_max_uint32_t;
 	}
 }
@@ -144,16 +157,23 @@ static uint32_t get_unclaimed_array_index(void)
 **/
 static bool create_array(uint32_t arr_i, uint32_t count)
 {
-	word_t* arr_ptr = (word_t*)malloc((count + 1) * sizeof(word_t));
+	uint32_t tmp_count = count;
+	word_t arr_ref = index_to_ref(arr_i);
+	word_t* arr_ptr = (word_t*)malloc((tmp_count + 1) * sizeof(word_t));
 	if (arr_ptr == NULL)
 	{
+		if (gc_arrays() != 0)
+		{
+			return create_array(arr_i, count); // Run GC to be sure memory allocation error is not caused by garbage
+		}
+		fprintf(stderr, "[ERR] Failed to allocate memory. In \"array.c::create_array\".\n");
 		g_cpu->error_flag = true; // Could not allocate memory for new array
 		return false;
 	}
 
 	arr_ptr[0] = (word_t)count; // First element stores array's size in 'elements' units
-
-	arr_id_mem.refs[arr_i] = index_to_ref(arr_i);
+	
+	arr_id_mem.refs[arr_i] = arr_ref;
 	arr_id_mem.ptrs[arr_i] = (uintptr_t)arr_ptr;
 	return true;
 }
@@ -161,32 +181,83 @@ static bool create_array(uint32_t arr_i, uint32_t count)
 
 word_t get_arr_element(word_t arr_ref, word_t i)
 {
-	word_t* arr_ptr = (word_t*)arr_id_mem.ptrs[ref_to_index(arr_ref)];
-	uint32_t arr_size = (uint32_t)arr_ptr[0];
-	if (i + 1 >= 0 && i + 1 <= (word_t)arr_size)
+	uint32_t arr_i;
+	word_t* arr_ptr;
+	uint32_t arr_size;
+
+	if ((arr_ref & k_index_to_ref) != 0xAA00000A)
 	{
-		return arr_ptr[i + 1]; // 0'th element stores size
+		fprintf(stderr, "[ERR] Invalid array reference. In \"array.c::get_arr_element\".\n");
+		g_cpu->error_flag = true; // Invalid array reference
+		return 0;
 	}
-	else
+
+	arr_i = ref_to_index(arr_ref);
+	if (arr_i >= arr_id_mem.size)
 	{
+		fprintf(stderr, "[ERR] Invalid array index. In \"array.c::get_arr_element\".\n");
+		g_cpu->error_flag = true; // Invalid array index
+		return 0;
+	}
+
+	arr_ptr = (word_t*)arr_id_mem.ptrs[arr_i];
+	if (arr_ptr == NULL)
+	{
+		fprintf(stderr, "[ERR] Program tried to access a non-existent array. In \"array.c::get_arr_element\".\n");
+		g_cpu->error_flag = true; // Unclaimed array reference
+		return 0;
+	}
+
+	arr_size = (uint32_t)arr_ptr[0];
+	if (i + 1 < 0 && i + 1 > (word_t)arr_size)
+	{
+		fprintf(stderr, "[ERR] Program tried to access a memory outside of an array. In \"array.c::get_arr_element\".\n");
 		g_cpu->error_flag = true; // Tried to access memory outside of array
 		return 0;
 	}
+
+	return arr_ptr[i + 1]; // First element is at index 1 (0'th element stores array size)
 }
 
 
 void set_arr_element(word_t arr_ref, word_t i, word_t new_val)
 {
-	word_t* arr_ptr = (word_t*)arr_id_mem.ptrs[ref_to_index(arr_ref)];
-	uint32_t arr_size = (uint32_t)arr_ptr[0];
-	if (i + 1 >= 0 && i + 1 <= (word_t)arr_size)
+	uint32_t arr_i;
+	word_t* arr_ptr;
+	uint32_t arr_size;
+
+	if ((arr_ref & k_index_to_ref) != 0xAA00000A)
 	{
-		arr_ptr[i + 1] = new_val; // 0'th element stores size
+		fprintf(stderr, "[ERR] Invalid array reference. In \"array.c::get_arr_element\".\n");
+		g_cpu->error_flag = true; // Invalid array reference
+		return;
 	}
-	else
+
+	arr_i = ref_to_index(arr_ref);
+	if (arr_i >= arr_id_mem.size)
 	{
+		fprintf(stderr, "[ERR] Invalid array index. In \"array.c::set_arr_element\".\n");
+		g_cpu->error_flag = true; // Invalid array index
+		return;
+	}
+
+	arr_ptr = (word_t*)arr_id_mem.ptrs[arr_i];
+	if (arr_ptr == NULL)
+	{
+		fprintf(stderr, "[ERR] Program tried to access a non-existent array. In \"array.c::set_arr_element\".\n");
+		g_cpu->error_flag = true; // Unclaimed array reference
+		return;
+	}
+
+	arr_size = (uint32_t)arr_ptr[0];
+	if (i + 1 < 0 && i + 1 > (word_t)arr_size)
+	{
+		fprintf(stderr, "[ERR] Program tried to access a memory outside of an array. In \"array.c::set_arr_element\".\n");
 		g_cpu->error_flag = true; // Tried to access memory outside of array
+		return;
 	}
+
+	arr_ptr[i + 1] = new_val; // First element is at index 1 (0'th element stores array size)
 }
 
 
@@ -196,12 +267,16 @@ word_t start_array_creation(word_t count)
 	if (arr_id_mem.refs == NULL)
 	{
 		init_arr_id_mem();
+		if (g_cpu->error_flag == true)
+		{
+			return 0;
+		}
 	}
 
 	arr_i = get_unclaimed_array_index();
 	if (arr_i == k_max_uint32_t)
 	{
-		g_cpu->error_flag = true; // Could not create an array
+		fprintf(stderr, "[ERR] Failed to acquire an unclaimed array reference. In \"array.c::start_array_creation\".\n");
 		return 0;
 	}
 
@@ -211,7 +286,7 @@ word_t start_array_creation(word_t count)
 	}
 	else
 	{
-		g_cpu->error_flag = true; // Could not initialize the newly created array
+		fprintf(stderr, "[ERR] Failed to create an array. In \"array.c::start_array_creation\".\n");
 		return 0;
 	}
 }
@@ -237,14 +312,12 @@ void destroy_arrays(void)
 /**
 * Mark all inaccessible arrays and return the number of marked arrays
 **/
-static uint32_t mark_arrays(uint32_t* marked_arrays)
+static void mark_arrays(bool* marked_arrays)
 {
-	uint32_t num_marked = 0;
 	word_t mem_data;
 	word_t ref;
 
 	// For scanning array element
-	word_t arr_ref;
 	uint32_t arr_i;
 	word_t* arr_ptr;
 	uint32_t arr_size;
@@ -253,8 +326,7 @@ static uint32_t mark_arrays(uint32_t* marked_arrays)
 	for (int mem_ptr = 0; mem_ptr <= g_cpu->sp; mem_ptr++)
 	{
 		mem_data = g_cpu->stack[mem_ptr];
-		if ((uint32_t)mem_data < (uint32_t)0xAA00000A || 
-			(uint32_t)mem_data > (uint32_t)0xAAFFFFFA) 
+		if ((mem_data & (word_t)k_index_to_ref) == 0xAA00000A) 
 		{
 			continue; // Entry in memory is definately not an array reference
 		}
@@ -269,29 +341,27 @@ static uint32_t mark_arrays(uint32_t* marked_arrays)
 
 			if (mem_data == ref)
 			{
-				marked_arrays[num_marked++] = ref_to_index(ref);
+				marked_arrays[ref_to_index(ref)] = true;
 				break;
 			}
 		}
 	}
 
 	// Look for array references inside of arrays that are reachable via the stack
-	for (uint32_t i = 0; i < num_marked; i++)
+	for (uint32_t i = 0; i < arr_id_mem.size; i++)
 	{
-		arr_ref = index_to_ref(marked_arrays[i]);
-		if (arr_ref == 0)
+		if (marked_arrays[i] != 1)
 		{
-			continue; // Skip unclaimed (0) array reference
+			continue; // No reference on the stack so it will be removed whatever the elements are
 		}
 
-		arr_i = ref_to_index(arr_ref);
+		arr_i = i;
 		arr_ptr = (word_t*)arr_id_mem.ptrs[arr_i];
 		arr_size = (uint32_t)arr_ptr[0];
 		for (uint32_t j = 1; j <= arr_size; j++)
 		{
-			if ((uint32_t)arr_ptr[j] < (uint32_t)0xAA00000A || 
-				(uint32_t)arr_ptr[j] > (uint32_t)0xAAFFFFFA ||
-				arr_ptr[j] == arr_ref)
+			if ((arr_ptr[j] & (word_t)k_index_to_ref) == 0xAA00000A ||
+				j == i)
 			{
 				/**
 				* Entry in array is definately not an array reference or
@@ -310,49 +380,54 @@ static uint32_t mark_arrays(uint32_t* marked_arrays)
 
 				if (arr_ptr[j] == ref)
 				{
-					marked_arrays[num_marked++] = ref_to_index(ref);
+					marked_arrays[arr_i] = true;
 					break;
 				}
 			}
 		}
 	}
-
-	return num_marked;
 }
 
 
 /**
-* Sweep all inaccessible arrays
+* Sweep all inaccessible arrays and return the number of arrays that were removed
 **/
-static void sweep_arrays(uint32_t* marked_arrays, uint32_t num_marked)
+static uint32_t sweep_arrays(bool* marked_arrays)
 {
-	for (uint32_t i = 0, j = 0; i < arr_id_mem.size; i++)
+	uint32_t num_swept = 0;
+	for (uint32_t i = 0; i < arr_id_mem.size; i++)
 	{
-		if (arr_id_mem.refs[i] == 0)
+		if (marked_arrays[i] != true && arr_id_mem.refs[i] != 0)
 		{
-			continue;
+			// Remove array
+			arr_id_mem.refs[i] = 0;
+			free((word_t*)arr_id_mem.ptrs[i]);
+			arr_id_mem.ptrs[i] = 0;
+			num_swept++;
 		}
-		if (j < num_marked && marked_arrays[j] == i)
-		{
-			j++;
-			continue;
-		}
-
-		// Remove array
-		arr_id_mem.refs[i] = 0;
-		free((word_t*)arr_id_mem.ptrs[i]);
-		arr_id_mem.ptrs[i] = 0;
 	}
+	return num_swept;
 }
 
 
-void gc_arrays(void)
+uint32_t gc_arrays(void)
 {
-	uint32_t marked_arrays[arr_id_mem.size];
-	uint32_t num_marked;
-	
-	num_marked = mark_arrays(marked_arrays);
-	sweep_arrays(marked_arrays, num_marked);
+	uint32_t tmp_mem_size = arr_id_mem.size;
+	bool* marked_arrays = (bool*)calloc(tmp_mem_size, sizeof(bool));
+	uint32_t num_freed;
+	if (marked_arrays == NULL)
+	{
+		fprintf(stderr, "[ERR] Failed to allocate memory. In \"array.c::gc_arrays\".\n");
+		g_cpu->error_flag = true; // Failed to allocate memory
+		return 0;
+	}
+	mark_arrays(marked_arrays);
+	num_freed = sweep_arrays(marked_arrays);
+
+	free(marked_arrays);
+
+	printf("GC free'd %i", num_freed);
+	return num_freed;
 }
 
 

@@ -9,9 +9,11 @@
 #include "types.h"
 #include "bytecode.h"
 #include "cpu.h"
+#include "array.h"
 
 
 #define SIZE_MAX_UINT32_T (~(uint32_t)0)
+#define SIZE_MAX_INT32_T (~(int32_t)0)
 
 
 /**

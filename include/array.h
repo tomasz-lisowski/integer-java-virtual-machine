@@ -9,6 +9,7 @@
 #include "types.h"
 #include "config.h"
 #include "cpu.h"
+#include "terminate.h"
 
 
 /**
@@ -40,9 +41,9 @@ void destroy_arrays(void);
 
 
 /**
-* Free unreachable arrays
+* Free unreachable arrays and return the number of arrays that were free'd
 **/
-void gc_arrays(void);
+uint32_t gc_arrays(void);
 
 
 /**

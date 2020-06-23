@@ -46,6 +46,7 @@ word_t stack_pop(void)
 {
     if (g_cpu->sp < g_cpu->lv)
     {
+        printf("[ERR] Failed to pop off the stack because the stack is empty. In \"cpu.c::stack_pop\".\n");
         g_cpu->error_flag = true; // Could not pop since stack is empty
         return 0;
     }
@@ -61,18 +62,30 @@ word_t stack_pop(void)
 **/
 static bool octuple_stack_size(void)
 {
-    if ((uint64_t)(g_cpu->stack_size * 4) >= 4294967296)
+    word_t* tmp_stack;
+    int tmp_stack_size;
+    uint64_t expected_size = (uint64_t)g_cpu->stack_size * (uint8_t)sizeof(word_t) * 8;
+    if (expected_size >= 4294967296 || expected_size == 0)
     {
+        printf("[ERR] Program needs more memory than is possible inside IJVM. In \"cpu.c::octuple_stack_size\".\n");
         g_cpu->error_flag = true; // Program needs more memory than is possible in IJVM
         return false;
     }
 
-    g_cpu->stack_size *= 8;
-    g_cpu->stack = (word_t*)realloc(g_cpu->stack, (uint32_t)g_cpu->stack_size * sizeof(word_t));
-
+    g_cpu->stack_size = g_cpu->stack_size * 8;
+    tmp_stack = g_cpu->stack;
+    tmp_stack_size = g_cpu->stack_size;
+    g_cpu->stack = (word_t*)realloc(g_cpu->stack, (uint32_t)tmp_stack_size * sizeof(word_t));
     if (g_cpu->stack == NULL)
     {
-        g_cpu->error_flag = true; // Not enough memory
+        g_cpu->stack_size = g_cpu->stack_size / 8;
+        g_cpu->stack = tmp_stack;
+        if (gc_arrays() != 0)
+        {
+            return octuple_stack_size(); // Run GC to be sure memory allocation error is not caused by garbage
+        }
+        printf("[ERR] Failed to allocate memory. In \"cpu.c::octuple_stack_size\".\n");
+        g_cpu->error_flag = true; // Failed to allocate memory
         return false;
     }
 
@@ -82,6 +95,12 @@ static bool octuple_stack_size(void)
 
 word_t get_constant(int i)
 {
+    if (i < 0 || i >= (g_cpu->const_mem_size / 4))
+    {
+        fprintf(stderr, "[ERR] Invalid constant index. In \"cpu.c::get_constant\".\n");
+        g_cpu->error_flag = true; // Invalid constant index
+        return 0;
+    }
     return (g_cpu->const_mem)[i];
 }
 
@@ -89,9 +108,10 @@ word_t get_constant(int i)
 word_t get_local_variable(int i)
 {
     uint32_t offset = (uint32_t)(g_cpu->lv + i);
-    if (i >= g_cpu->nv)
+    if (i < 0 || i >= g_cpu->nv)
     {
-        g_cpu->error_flag = true; // Tried to access memory beyond variable memory
+        fprintf(stderr, "[ERR] Program tried to access memory outside of variable memory. In \"cpu.c::get_local_variable\".\n");
+        g_cpu->error_flag = true; // Tried to access memory outside of variable memory
         return 0;
     }
     return (g_cpu->stack)[offset];
@@ -100,14 +120,28 @@ word_t get_local_variable(int i)
 
 void update_local_variable(word_t new_val, int i)
 {
-    if (i >= g_cpu->nv)
+    if (i < 0 || i >= g_cpu->nv)
     {
-        g_cpu->error_flag = true; // Tried to access memory beyond variable memory
+        fprintf(stderr, "[ERR] Program tried to access memory outside of variable memory. In \"cpu.c::update_local_variable\".\n");
+        g_cpu->error_flag = true; // Tried to access memory outside of variable memory
+        return;
     }
     else
     {
         (g_cpu->stack)[g_cpu->lv + i] = new_val;
     }
+}
+
+
+void jump(int32_t offset)
+{
+    if (g_cpu->pc + offset < 0 || offset >= g_cpu->code_mem_size)
+    {
+        fprintf(stderr, "[ERR] Invalid jump offset. In \"cpu.c::jump\".\n");
+        g_cpu->error_flag = true; // Bad offset
+        return;
+    }
+    g_cpu->pc += offset;
 }
 
 

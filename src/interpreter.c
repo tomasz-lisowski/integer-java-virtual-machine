@@ -50,6 +50,12 @@ static bool next_op_wide = false;
 **/
 static inline byte_t get_arg_byte(void)
 {
+	if (g_cpu->pc + 1 > g_cpu->code_mem_size)
+	{
+		fprintf(stderr, "[ERR] Program counter was moved beyond code memory. In \"interpreter.c::get_arg_short\".\n");
+		g_cpu->error_flag = true; // PC moved beyond code memory
+		return 0;
+	}
 	return (g_cpu->code_mem)[g_cpu->pc++];
 }
 
@@ -59,6 +65,12 @@ static inline byte_t get_arg_byte(void)
 **/
 static inline short get_arg_short(void)
 {
+	if (g_cpu->pc + 2 > g_cpu->code_mem_size)
+	{
+		fprintf(stderr, "[ERR] Program counter was moved beyond code memory. In \"interpreter.c::get_arg_short\".\n");
+		g_cpu->error_flag = true; // PC moved beyond code memory
+		return 0;
+	}
 	byte_t b1 = (g_cpu->code_mem)[g_cpu->pc++];
 	byte_t b2 = (g_cpu->code_mem)[g_cpu->pc++];
 	return (short)((b1 << 8) | b2);
@@ -79,7 +91,11 @@ static inline void exec_op_bipush(void)
 static inline void exec_op_ldc_w(void)
 {
 	uint16_t const_index = (uint16_t)get_arg_short();
-	stack_push((g_cpu->const_mem)[const_index]);
+	word_t const_val = get_constant(const_index);
+	if (g_cpu->error_flag == false)
+	{
+		stack_push(const_val);
+	}
 }
 
 
@@ -161,55 +177,55 @@ static inline void exec_op_iand(void)
 
 static inline void exec_op_iinc(void)
 {
-	uint16_t var_i;
+	int16_t var_i;
 	int8_t c;
 	if (next_op_wide)
 	{
-		var_i = (uint16_t)get_arg_short();
+		var_i = get_arg_short();
 	}
 	else
 	{
-		var_i = (uint16_t)get_arg_byte();
+		var_i = (int16_t)get_arg_byte();
 	}
 	c = (int8_t)get_arg_byte();
-	update_local_variable(c + get_local_variable(var_i), var_i);
+	update_local_variable((int32_t)(get_local_variable(var_i) + c), var_i);
 }
 
 
 static inline void exec_op_ifeq(void)
 {
-	uint32_t target = (uint32_t)get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
+	int16_t jmp_offset = (int16_t)(get_arg_short() - 3); // -3 to get offset from instruction call not address of last argument byte
 	if (stack_pop() == 0)
 	{
-		g_cpu->pc += (int)target;
+		jump(jmp_offset);
 	}
 }
 
 
 static inline void exec_op_iflt(void)
 {
-	uint32_t target = (uint32_t)get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
+	int16_t jmp_offset = (int16_t)(get_arg_short() - 3); // -3 to get offset from instruction call not address of last argument byte
 	if (stack_pop() < 0)
 	{
-		g_cpu->pc += (int)target;
+		jump(jmp_offset);
 	}
 }
 
 
 static inline void exec_op_icmpeq(void)
 {
-	uint32_t target = (uint32_t)get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
+	int16_t jmp_offset = (int16_t)(get_arg_short() - 3); // -3 to get offset from instruction call not address of last argument byte
 	if (stack_pop() ==  stack_pop())
 	{
-		g_cpu->pc += (int)target;
+		jump(jmp_offset);
 	}
 }
 
 
 static inline void exec_op_goto(void)
 {
-	uint32_t target = (uint32_t)get_arg_short() - 3; // -3 to get offset from instruction call not address of last argument byte
-	g_cpu->pc += (int)target;
+	int16_t jmp_offset = (int16_t)(get_arg_short() - 3); // -3 to get offset from instruction call not address of last argument byte
+	jump(jmp_offset);
 }
 
 
@@ -224,6 +240,17 @@ static inline void exec_op_ireturn(void)
 	g_cpu->nv = stack_pop();
 	g_cpu->lv = stack_pop();
 	g_cpu->sp -= old_nv; // Remove all local variables and arguments from stack
+
+	if (g_cpu->sp < -1 || 
+		g_cpu->pc < 0 || 
+		g_cpu->fp < 0 || 
+		g_cpu->nv < 0 || 
+		g_cpu->lv < 0)
+	{
+		fprintf(stderr, "[ERR] Program tried removing a stack frame that did not exist. In \"interpreter.c::exec_op_ireturn\".\n");
+		g_cpu->error_flag = true; // Tried destroying a stack frame that likely never existed
+		return;
+	}
 	stack_push(ret_val);
 }
 
@@ -239,24 +266,50 @@ static inline void exec_op_ior(void)
 static inline void exec_op_invokevirtual(void)
 {
 	word_t offset = get_constant(get_arg_short()); // Move PC to return address while getting offset
+	if (g_cpu->error_flag == true)
+	{
+		return;
+	}
 	int old_pc = g_cpu->pc;
 	uint16_t num_args, num_locals;
+
+	if (offset < 0 || offset >= g_cpu->code_mem_size)
+	{
+		fprintf(stderr, "[ERR] Invalid method address. In \"interpreter.c::exec_op_invokevirtual\".\n");
+		g_cpu->error_flag = true; // Invalid offset
+		return;
+	}
 
 	g_cpu->pc = offset; // Move into method's memory
 	num_args = (uint16_t)get_arg_short();
 	num_locals = (uint16_t)get_arg_short();
 
 	g_cpu->sp += num_locals;
-	stack_push(g_cpu->lv);
-	stack_push(g_cpu->nv);
-	stack_push(g_cpu->fp);
-	stack_push(old_pc);
-	
+	if (!stack_push(g_cpu->lv) ||
+		!stack_push(g_cpu->nv) ||
+		!stack_push(g_cpu->fp) ||
+		!stack_push(old_pc))
+	{
+		fprintf(stderr, "[ERR] Failed to push onto the stack. In \"interpreter.c::exec_op_invokevirtual\".\n");
+		g_cpu->error_flag = true; // Failed to push onto the stack
+		return;
+	}
+
 	g_cpu->fp = g_cpu->sp - 3;
 	g_cpu->nv = num_args + num_locals;
 	g_cpu->lv = g_cpu->fp - g_cpu->nv;
 
-	memset(&g_cpu->stack[g_cpu->lv + num_args], 0, num_locals * sizeof(uint32_t)); // Init local variables to 0
+	if (g_cpu->lv < 0)
+	{
+		fprintf(stderr, "[ERR] Method provided an invalid number of arguments. In \"interpreter.c::exec_op_invokevirtual\".\n");
+		g_cpu->error_flag = true; // Invalid number of arguments
+		return;
+	}
+
+	if (g_cpu->error_flag == false)
+	{
+		memset(&g_cpu->stack[g_cpu->lv + num_args], 0, (uint16_t)num_locals * sizeof(uint32_t)); // Init local variables to 0
+	}
 
 	/**
 	* Stack after call:
@@ -297,7 +350,8 @@ static inline void exec_op_in(void)
 
 static inline void exec_op_out(void)
 {
-	fprintf(g_out_file, "%c", (char)stack_pop());
+	char data = (char)stack_pop();
+	fprintf(g_out_file, "%c", data);
 }
 
 
@@ -345,7 +399,7 @@ static inline void exec_op_gc(void)
 
 static inline void exec_op_netbind(void)
 {
-
+	
 }
 
 
@@ -390,6 +444,11 @@ bool step(void)
 	int old_pc = g_cpu->pc;
 	const char* op = op_decode((g_cpu->code_mem)[g_cpu->pc]);
 #endif
+	if (g_cpu->pc < 0 || g_cpu->pc >= g_cpu->code_mem_size)
+	{
+		g_cpu->error_flag = true;
+		return false;
+	}
 
 	switch ((g_cpu->code_mem)[(g_cpu->pc)++])
 	{
@@ -493,7 +552,7 @@ bool step(void)
 		exec_op_netclose();
 		break;
 	default:
-		dprintf("[INVALID OP 0x%X]\n", (g_cpu->code_mem)[g_cpu->pc - 1]);
+		fprintf(stderr, "[ERR] Invalid instruction. In \"interpreter.c::step\".\n");
 		g_cpu->error_flag = true;
 	}
 
@@ -518,7 +577,7 @@ bool step(void)
 
 bool finished(void)
 {
-	bool end_of_code = g_cpu->pc == g_cpu->code_mem_size;
+	bool end_of_code = g_cpu->pc >= g_cpu->code_mem_size;
 	bool cpu_err = g_cpu->error_flag;
 	bool cpu_halt = g_cpu->halt_flag;
 
@@ -526,14 +585,15 @@ bool finished(void)
 	{
 		if (cpu_halt)
 		{
-			dprintf("[HALT_FLAG]\n");
+			dprintf("[HALT FLAG]\n");
 		}
 		else if (cpu_err)
 		{
-			dprintf("[ERR_FLAG]\n");
+			dprintf("[ERR FLAG]\n");
 		}
-		else if (end_of_code) {
-			dprintf("[TEXT_END]\n");
+		else if (end_of_code)
+		{
+			dprintf("[TEXT END]\n");
 		}
 		return true;
 	}

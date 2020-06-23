@@ -2,16 +2,17 @@
 #define CPU_H
 
 
-#include "stdlib.h"
+#include <stdlib.h>
 
 
 #include "types.h"
 #include "util.h"
+#include "array.h"
 
 
 typedef struct CPU_t
 {
-    // All sizes in "elements" units
+	// Sizes are in "elements" units
 	int const_mem_size;
 	int code_mem_size;
 	int stack_size;
@@ -44,8 +45,8 @@ word_t tos(void);
 
 /**
 * Pushes element on top of stack
-* Returns  1 on success
-*          0 on failure
+* Returns  true on success
+*          false on failure
 **/
 bool stack_push(word_t e);
 
@@ -72,6 +73,12 @@ word_t get_local_variable(int i);
 * Update the value of i'th local variable in current frame (or create one if it does not exist)
 **/
 void update_local_variable(word_t new_val, int i);
+
+
+/**
+* Perform a jump in code memory (from current PC) by a given offset
+**/
+void jump(int32_t offset);
 
 
 /**

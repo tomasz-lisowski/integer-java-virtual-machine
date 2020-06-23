@@ -2,7 +2,7 @@
 
 
 // Declarations for static functions
-static uint32_t get_num_local_vars_main(void);
+static int32_t get_num_local_vars_main(void);
 static void init_stack(void);
 static void init_registers(void);
 static void init_cpu_flags(void);
@@ -11,23 +11,23 @@ static void init_cpu_flags(void);
 /**
 * Returns the number of local variables inside the main method
 **/
-static uint32_t get_num_local_vars_main(void)
+static int32_t get_num_local_vars_main(void)
 {
 	uint32_t addr_first_method_after_main = SIZE_MAX_UINT32_T;
-	uint32_t var_num = 0;
+	int32_t var_num = 0;
 
 	// Temporary variables to keep track of loop state
 	byte_t op;
 	bool next_wide = false;
-	uint32_t var_index;
-	uint32_t addr;
+	int32_t var_index;
+	int32_t addr;
 
 	/**
 	* Simultaneously find where first method (after main) starts
 	* and determine the number of referenced variables inside main.
 	* "Loop Jamming"
 	**/ 
-	for (uint32_t i = 0; (int)i < g_cpu->code_mem_size; i++)
+	for (uint32_t i = 0; (int64_t)i < g_cpu->code_mem_size; i++)
 	{
 		op = (g_cpu->code_mem)[i];
 
@@ -44,10 +44,14 @@ static uint32_t get_num_local_vars_main(void)
 			continue;
 
 		case OP_INVOKEVIRTUAL:
-			addr = (uint32_t)get_constant(get_code_short((int)i + 1));
-			if (addr < addr_first_method_after_main)
+			addr = get_constant(get_code_short((int)i + 1));
+			if (g_cpu->error_flag == true)
 			{
-				addr_first_method_after_main = addr;
+				return 0;
+			}
+			if (addr > 0 && addr < (int64_t)addr_first_method_after_main && addr < g_cpu->code_mem_size)
+			{
+				addr_first_method_after_main = (uint32_t)addr;
 			}
 			i += 2;
 			continue;
@@ -57,13 +61,13 @@ static uint32_t get_num_local_vars_main(void)
 		case OP_IINC:
 			if (next_wide)
 			{
-				var_index = (uint32_t)get_code_short((int)i + 1);
+				var_index = get_code_short((int)i + 1);
 				next_wide = false;
 				i += 2;
 			}
 			else
 			{
-				var_index = (uint32_t)get_code_byte((int)i + 1);
+				var_index = get_code_byte((int)i + 1);
 				i += 1;
 			}
 
@@ -126,19 +130,33 @@ static uint32_t get_num_local_vars_main(void)
 **/
 static void init_stack(void)
 {
-	uint32_t main_num_vars = get_num_local_vars_main();
+	int32_t main_num_vars = get_num_local_vars_main();
+	int tmp_mem_size;
+	if (main_num_vars < 0 || g_cpu->error_flag == true)
+	{
+		fprintf(stderr, "[ERR] Invalid number of arguments in main method. In \"init.c::init_stack\".\n");
+		g_cpu->error_flag = true; // Invalid number of variables
+		return;
+	}
 
 	// MAX_SIZE = 4294967296 = (STACK_MIN_SIZE * sizeof(word_t)) * 8^i
 	for (uint32_t i = 0; i <= 6; i++)
 	{
 		// Find smallest suitable stack size 
-		if ((main_num_vars * sizeof(word_t)) + 1024 <= (STACK_MIN_SIZE * sizeof(word_t)) * power(8, i)) // 1024 is an arbitrary margin for operands
+		if (((uint32_t)main_num_vars * sizeof(word_t)) + 1024 <= (STACK_MIN_SIZE * sizeof(word_t)) * power(8, i)) // 1024 is an arbitrary margin for operands
 		{
 			g_cpu->stack_size = (int)(STACK_MIN_SIZE * power(8, i));
 			break;
 		}
 	}
-	g_cpu->stack = (word_t*)malloc((uint32_t)g_cpu->stack_size * sizeof(word_t));
+	tmp_mem_size = g_cpu->stack_size;
+	g_cpu->stack = (word_t*)malloc((uint32_t)tmp_mem_size * sizeof(word_t));
+	if (g_cpu->stack == NULL)
+	{
+		fprintf(stderr, "[ERR] Failed to allocate memory. In \"init.c::init_stack\".\n");
+		g_cpu->error_flag = true; // Failed to allocate memory
+		return;
+	}
 
 	// Pre-allocate local variable memory before the operand stack of main
 	g_cpu->sp = (int)(main_num_vars) - 1;
@@ -146,7 +164,10 @@ static void init_stack(void)
 	g_cpu->nv = (int)(main_num_vars);
 	g_cpu->fp = (int)(main_num_vars);
 
-	memset(g_cpu->stack, 0, (uint32_t)g_cpu->nv * sizeof(uint32_t)); // Init local variables to 0
+	if (g_cpu->error_flag == false)
+	{
+		memset(g_cpu->stack, 0, (uint32_t)g_cpu->nv * sizeof(uint32_t)); // Init local variables to 0
+	}
 }
 
 
@@ -176,7 +197,6 @@ int init_ijvm(char* binary_path)
 		destroy_ijvm(); // Ensure memory is free'd
 		return -1;
 	}
-
 	init_registers();
 	init_stack();
 	init_cpu_flags();

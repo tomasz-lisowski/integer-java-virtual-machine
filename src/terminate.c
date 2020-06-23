@@ -7,4 +7,5 @@ void destroy_ijvm(void)
 	destroy_arrays();
 	destroy_cpu();
 	dprintf("[DESTROY IJVM]\n");
+	exit(0);
 }

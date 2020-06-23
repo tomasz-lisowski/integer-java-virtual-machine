@@ -269,6 +269,7 @@ static void store_func_call(void)
 
 	uint32_t* tmp_call_history;
 	uint32_t call_elements_num;
+	uint32_t tmp_call_history_size;
 
 	func_addr = (uint32_t)get_constant(get_code_short(g_cpu->pc + 1));
 	func_num_args = (uint32_t)get_code_short((int)func_addr);
@@ -280,9 +281,11 @@ static void store_func_call(void)
 		g_dbg_state->call_history_size = g_dbg_state->call_history_top + call_elements_num + 1024; // Store current function plus an extra margin
 
 		tmp_call_history = g_dbg_state->call_history; // In case allocation fails
-		g_dbg_state->call_history = (uint32_t*)realloc(g_dbg_state->call_history, g_dbg_state->call_history_size * sizeof(uint32_t));
+		tmp_call_history_size = g_dbg_state->call_history_size;
+		g_dbg_state->call_history = (uint32_t*)realloc(g_dbg_state->call_history, tmp_call_history_size * sizeof(uint32_t));
 		if (g_dbg_state->call_history == NULL)
 		{
+			fprintf(stderr, "[ERR] Failed to allocate memory. In \"ijdb.c::store_func_call\".\n");
 			g_dbg_state->quit_flag = true;
 			g_dbg_state->call_history = tmp_call_history;
 			return;
@@ -515,6 +518,7 @@ static void exec_backtrace(void)
 static void exec_break(char* offset)
 {
 	uint32_t offset_num;
+	uint32_t tmp_mem_size;
 
 	if (g_dbg_state->prog_state == EMPTY)
 	{
@@ -522,9 +526,11 @@ static void exec_break(char* offset)
 		return;
 	}
 
-	g_dbg_state->brkpts.addrs = (uint32_t*)realloc(g_dbg_state->brkpts.addrs, (++g_dbg_state->brkpts.num) * sizeof(uint32_t));
+	tmp_mem_size = ++g_dbg_state->brkpts.num;
+	g_dbg_state->brkpts.addrs = (uint32_t*)realloc(g_dbg_state->brkpts.addrs, tmp_mem_size * sizeof(uint32_t));
 	if (g_dbg_state->brkpts.addrs == NULL)
 	{
+		fprintf(stderr, "[ERR] Failed to allocate memory. In \"ijdb.c::exec_break\".\n");
 		g_dbg_state->quit_flag = true; // Failed to allocate memory
 		return;
 	}

@@ -32,7 +32,7 @@ int main(int argc, char** argv)
 
     if (init_ijvm(argv[1]) < 0)
     {
-        fprintf(stderr, "Couldn't load binary %s\n", argv[1]);
+        fprintf(stderr, "[ERR] Failed to load binary %s. In \"main.c::main\".\n", argv[1]);
         return 1;
     }
 
@@ -41,7 +41,7 @@ int main(int argc, char** argv)
         FILE* in_file = fopen(argv[2], "r");
         if (in_file == NULL)
         {
-            fprintf(stderr, "Couldn't open %s\n", argv[2]);
+            fprintf(stderr, "[ERR] Failed to open %s. In \"main.c::main\".\n", argv[2]);
             return -1;
         }
         set_input(in_file);
@@ -53,7 +53,7 @@ int main(int argc, char** argv)
         FILE* out_file = fopen(argv[3], "w+");
         if (out_file == NULL)
         {
-            fprintf(stderr, "Couldn't open %s\n", argv[3]);
+            fprintf(stderr, "[ERR] Failed to open %s. In \"main.c::main\".\n", argv[3]);
             return -1;
         }
         set_output(out_file);

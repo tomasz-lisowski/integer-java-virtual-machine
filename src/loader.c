@@ -23,7 +23,7 @@ static bool check_file_signature(uint32_t magic_number)
 {
     if (swap_uint32(magic_number) != MAGIC_NUMBER)
     {
-        dprintf("[BAD FILE SIGNATURE]\n");
+        fprintf(stderr, "[ERR] Bad file signature. In \"loader.c::check_file_signature\".\n");
         return false;
     }
     else
@@ -41,6 +41,7 @@ static bool check_file_signature(uint32_t magic_number)
 static bool load_consts(FILE* f)
 {
     size_t num_elements_read;
+    int tmp_mem_size;
 
     // Read origin
     uint32_t const_pool_origin;
@@ -58,9 +59,14 @@ static bool load_consts(FILE* f)
         return false;
     }
     g_cpu->const_mem_size = (int)swap_uint32((uint32_t)g_cpu->const_mem_size);
+    if (g_cpu->const_mem_size % 4 != 0)
+    {
+        return false; // There aren't an integer number of constants
+    }
 
     // Read consts
-    g_cpu->const_mem = (word_t*)malloc((uint32_t)g_cpu->const_mem_size * sizeof(word_t));
+    tmp_mem_size = g_cpu->const_mem_size;
+    g_cpu->const_mem = (word_t*)malloc((uint32_t)tmp_mem_size * sizeof(word_t));
     if (g_cpu->const_mem == NULL)
     {
         return false;
@@ -87,6 +93,7 @@ static bool load_consts(FILE* f)
 static bool load_code(FILE* f)
 {
     size_t num_elements_read;
+    int tmp_mem_size;
 
     // Read origin
     uint32_t text_origin;
@@ -106,7 +113,8 @@ static bool load_code(FILE* f)
     g_cpu->code_mem_size = (int)swap_uint32((uint32_t)g_cpu->code_mem_size);
 
     // Read code
-    g_cpu->code_mem = (byte_t*)malloc((uint32_t)g_cpu->code_mem_size * sizeof(byte_t));
+    tmp_mem_size = g_cpu->code_mem_size;
+    g_cpu->code_mem = (byte_t*)malloc((uint32_t)tmp_mem_size * sizeof(byte_t));
     if (g_cpu->code_mem == NULL)
     {
         return false;
@@ -129,7 +137,7 @@ bool load_bin(char* path)
 
     if (!(f = fopen(path, "rb")))
     {
-        dprintf("[FILE COULD NOT BE OPENED]\n");
+        fprintf(stderr, "[ERR] Failed to open file. In \"loader.c::load_bin\".\n");
         return false;
     }
 
@@ -141,7 +149,7 @@ bool load_bin(char* path)
         !load_code(f)
         )
     {
-        dprintf("[BAD FILE FORMAT]\n");
+        fprintf(stderr, "[ERR] Bad file format. In \"loader.c::load_bin\".\n");
         fclose(f);
         return false;
     }
