@@ -7,6 +7,7 @@
 #include "loader.h"
 #include "util.h"
 #include "interpreter.h"
+#include "terminate.h"
 
 
 /**

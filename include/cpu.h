@@ -8,6 +8,7 @@
 #include "types.h"
 #include "util.h"
 #include "array.h"
+#include "terminate.h"
 
 
 typedef struct CPU_t

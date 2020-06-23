@@ -47,8 +47,7 @@ word_t stack_pop(void)
     if (g_cpu->sp < g_cpu->lv)
     {
         printf("[ERR] Failed to pop off the stack because the stack is empty. In \"cpu.c::stack_pop\".\n");
-        g_cpu->error_flag = true; // Could not pop since stack is empty
-        return 0;
+        destroy_ijvm_now();
     }
     return (g_cpu->stack)[g_cpu->sp--];
 }
@@ -68,8 +67,7 @@ static bool octuple_stack_size(void)
     if (expected_size >= 4294967296 || expected_size == 0)
     {
         printf("[ERR] Program needs more memory than is possible inside IJVM. In \"cpu.c::octuple_stack_size\".\n");
-        g_cpu->error_flag = true; // Program needs more memory than is possible in IJVM
-        return false;
+        destroy_ijvm_now();
     }
 
     g_cpu->stack_size = g_cpu->stack_size * 8;
@@ -85,8 +83,7 @@ static bool octuple_stack_size(void)
             return octuple_stack_size(); // Run GC to be sure memory allocation error is not caused by garbage
         }
         printf("[ERR] Failed to allocate memory. In \"cpu.c::octuple_stack_size\".\n");
-        g_cpu->error_flag = true; // Failed to allocate memory
-        return false;
+        destroy_ijvm_now();
     }
 
     return true;
@@ -98,8 +95,7 @@ word_t get_constant(int i)
     if (i < 0 || i >= (g_cpu->const_mem_size / 4))
     {
         fprintf(stderr, "[ERR] Invalid constant index. In \"cpu.c::get_constant\".\n");
-        g_cpu->error_flag = true; // Invalid constant index
-        return 0;
+        destroy_ijvm_now();
     }
     return (g_cpu->const_mem)[i];
 }
@@ -111,8 +107,7 @@ word_t get_local_variable(int i)
     if (i < 0 || i >= g_cpu->nv)
     {
         fprintf(stderr, "[ERR] Program tried to access memory outside of variable memory. In \"cpu.c::get_local_variable\".\n");
-        g_cpu->error_flag = true; // Tried to access memory outside of variable memory
-        return 0;
+        destroy_ijvm_now();
     }
     return (g_cpu->stack)[offset];
 }
@@ -123,8 +118,7 @@ void update_local_variable(word_t new_val, int i)
     if (i < 0 || i >= g_cpu->nv)
     {
         fprintf(stderr, "[ERR] Program tried to access memory outside of variable memory. In \"cpu.c::update_local_variable\".\n");
-        g_cpu->error_flag = true; // Tried to access memory outside of variable memory
-        return;
+        destroy_ijvm_now();
     }
     else
     {
@@ -138,8 +132,7 @@ void jump(int32_t offset)
     if (g_cpu->pc + offset < 0 || offset >= g_cpu->code_mem_size)
     {
         fprintf(stderr, "[ERR] Invalid jump offset. In \"cpu.c::jump\".\n");
-        g_cpu->error_flag = true; // Bad offset
-        return;
+        destroy_ijvm_now();
     }
     g_cpu->pc += offset;
 }

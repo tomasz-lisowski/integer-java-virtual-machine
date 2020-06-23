@@ -53,8 +53,7 @@ static inline byte_t get_arg_byte(void)
 	if (g_cpu->pc + 1 > g_cpu->code_mem_size)
 	{
 		fprintf(stderr, "[ERR] Program counter was moved beyond code memory. In \"interpreter.c::get_arg_short\".\n");
-		g_cpu->error_flag = true; // PC moved beyond code memory
-		return 0;
+		destroy_ijvm_now();
 	}
 	return (g_cpu->code_mem)[g_cpu->pc++];
 }
@@ -68,8 +67,7 @@ static inline short get_arg_short(void)
 	if (g_cpu->pc + 2 > g_cpu->code_mem_size)
 	{
 		fprintf(stderr, "[ERR] Program counter was moved beyond code memory. In \"interpreter.c::get_arg_short\".\n");
-		g_cpu->error_flag = true; // PC moved beyond code memory
-		return 0;
+		destroy_ijvm_now();
 	}
 	byte_t b1 = (g_cpu->code_mem)[g_cpu->pc++];
 	byte_t b2 = (g_cpu->code_mem)[g_cpu->pc++];
@@ -248,8 +246,7 @@ static inline void exec_op_ireturn(void)
 		g_cpu->lv < 0)
 	{
 		fprintf(stderr, "[ERR] Program tried removing a stack frame that did not exist. In \"interpreter.c::exec_op_ireturn\".\n");
-		g_cpu->error_flag = true; // Tried destroying a stack frame that likely never existed
-		return;
+		destroy_ijvm_now();
 	}
 	stack_push(ret_val);
 }
@@ -276,8 +273,7 @@ static inline void exec_op_invokevirtual(void)
 	if (offset < 0 || offset >= g_cpu->code_mem_size)
 	{
 		fprintf(stderr, "[ERR] Invalid method address. In \"interpreter.c::exec_op_invokevirtual\".\n");
-		g_cpu->error_flag = true; // Invalid offset
-		return;
+		destroy_ijvm_now();
 	}
 
 	g_cpu->pc = offset; // Move into method's memory
@@ -291,8 +287,7 @@ static inline void exec_op_invokevirtual(void)
 		!stack_push(old_pc))
 	{
 		fprintf(stderr, "[ERR] Failed to push onto the stack. In \"interpreter.c::exec_op_invokevirtual\".\n");
-		g_cpu->error_flag = true; // Failed to push onto the stack
-		return;
+		destroy_ijvm_now();
 	}
 
 	g_cpu->fp = g_cpu->sp - 3;
@@ -302,8 +297,7 @@ static inline void exec_op_invokevirtual(void)
 	if (g_cpu->lv < 0)
 	{
 		fprintf(stderr, "[ERR] Method provided an invalid number of arguments. In \"interpreter.c::exec_op_invokevirtual\".\n");
-		g_cpu->error_flag = true; // Invalid number of arguments
-		return;
+		destroy_ijvm_now();
 	}
 
 	if (g_cpu->error_flag == false)
@@ -336,7 +330,8 @@ static inline void exec_op_wide(void)
 
 static inline void exec_op_in(void)
 {
-	word_t c = getc(g_in_file);
+	stack_push(0);
+	/*word_t c = getc(g_in_file);
 	if (c == EOF)
 	{
 		stack_push(0);
@@ -344,14 +339,14 @@ static inline void exec_op_in(void)
 	else
 	{
 		stack_push(c);
-	}
+	}*/
 }
 
 
 static inline void exec_op_out(void)
 {
 	char data = (char)stack_pop();
-	fprintf(g_out_file, "%c", data);
+	//fprintf(g_out_file, "%c", data);
 }
 
 
@@ -553,7 +548,7 @@ bool step(void)
 		break;
 	default:
 		fprintf(stderr, "[ERR] Invalid instruction. In \"interpreter.c::step\".\n");
-		g_cpu->error_flag = true;
+		destroy_ijvm_now();
 	}
 
 #ifdef DEBUG

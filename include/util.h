@@ -10,6 +10,7 @@
 #include "bytecode.h"
 #include "cpu.h"
 #include "array.h"
+#include "terminate.h"
 
 
 #define SIZE_MAX_UINT32_T (~(uint32_t)0)

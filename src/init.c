@@ -135,8 +135,7 @@ static void init_stack(void)
 	if (main_num_vars < 0 || g_cpu->error_flag == true)
 	{
 		fprintf(stderr, "[ERR] Invalid number of arguments in main method. In \"init.c::init_stack\".\n");
-		g_cpu->error_flag = true; // Invalid number of variables
-		return;
+		destroy_ijvm_now();
 	}
 
 	// MAX_SIZE = 4294967296 = (STACK_MIN_SIZE * sizeof(word_t)) * 8^i
@@ -154,8 +153,7 @@ static void init_stack(void)
 	if (g_cpu->stack == NULL)
 	{
 		fprintf(stderr, "[ERR] Failed to allocate memory. In \"init.c::init_stack\".\n");
-		g_cpu->error_flag = true; // Failed to allocate memory
-		return;
+		destroy_ijvm_now();
 	}
 
 	// Pre-allocate local variable memory before the operand stack of main
@@ -194,7 +192,7 @@ int init_ijvm(char* binary_path)
 {
 	if (load_bin(binary_path) != true)
 	{
-		destroy_ijvm(); // Ensure memory is free'd
+		destroy_ijvm();
 		return -1;
 	}
 	init_registers();

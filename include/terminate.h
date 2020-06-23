@@ -16,4 +16,10 @@
 void destroy_ijvm(void);
 
 
+/**
+* Close the VM immediately. This should only be used when an error occurs.
+**/
+void destroy_ijvm_now(void);
+
+
 #endif
