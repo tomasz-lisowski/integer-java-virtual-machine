@@ -330,8 +330,7 @@ static inline void exec_op_wide(void)
 
 static inline void exec_op_in(void)
 {
-	stack_push(0);
-	/*word_t c = getc(g_in_file);
+	word_t c = getc(g_in_file);
 	if (c == EOF)
 	{
 		stack_push(0);
@@ -339,14 +338,14 @@ static inline void exec_op_in(void)
 	else
 	{
 		stack_push(c);
-	}*/
+	}
 }
 
 
 static inline void exec_op_out(void)
 {
 	char data = (char)stack_pop();
-	//fprintf(g_out_file, "%c", data);
+	fprintf(g_out_file, "%c", data);
 }
 
 
