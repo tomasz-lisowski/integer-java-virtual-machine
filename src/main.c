@@ -7,7 +7,7 @@
 #include "util.h"
 
 
-// Declarations for static functions
+// Declarations of static functions
 static void print_usage(void);
 
 

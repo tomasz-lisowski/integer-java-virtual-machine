@@ -13,10 +13,6 @@
 #include "terminate.h"
 
 
-#define SIZE_MAX_UINT32_T (~(uint32_t)0)
-#define SIZE_MAX_INT32_T (~(int32_t)0)
-
-
 /**
 * Returns the i'th byte, from code memory
 **/

@@ -1,7 +1,7 @@
 #include "debug_data_loader.h"
 
 
-// Declarations for static functions
+// Declarations of static functions
 static int64_t get_block_size(FILE* f);
 static bool skip_block(FILE* f);
 static bool inc_memory_size(void** arr, uint32_t* arr_size, uint32_t el_size);

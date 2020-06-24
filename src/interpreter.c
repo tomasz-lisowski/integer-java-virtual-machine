@@ -1,7 +1,7 @@
 #include "interpreter.h"
 
 
-// Declarations for static functions
+// Declarations of static functions
 static inline byte_t get_arg_byte(void);
 static inline short get_arg_short(void);
 
@@ -35,12 +35,6 @@ static inline void exec_op_iaload(void);
 static inline void exec_op_iastore(void);
 static inline void exec_op_gc(void);
 
-static inline void exec_op_netbind(void);
-static inline void exec_op_netconnect(void);
-static inline void exec_op_netin(void);
-static inline void exec_op_netout(void);
-static inline void exec_op_netclose(void);
-
 
 static bool next_op_wide = false;
 
@@ -64,13 +58,14 @@ static inline byte_t get_arg_byte(void)
 **/
 static inline short get_arg_short(void)
 {
+	byte_t b1, b2;
 	if (g_cpu->pc + 2 > g_cpu->code_mem_size)
 	{
 		fprintf(stderr, "[ERR] Program counter was moved beyond code memory. In \"interpreter.c::get_arg_short\".\n");
 		destroy_ijvm_now();
 	}
-	byte_t b1 = (g_cpu->code_mem)[g_cpu->pc++];
-	byte_t b2 = (g_cpu->code_mem)[g_cpu->pc++];
+	b1 = (g_cpu->code_mem)[g_cpu->pc++];
+	b2 = (g_cpu->code_mem)[g_cpu->pc++];
 	return (short)((b1 << 8) | b2);
 }
 
@@ -262,14 +257,15 @@ static inline void exec_op_ior(void)
 
 static inline void exec_op_invokevirtual(void)
 {
+	int old_pc;
+	uint16_t num_args, num_locals;
 	word_t offset = get_constant(get_arg_short()); // Move PC to return address while getting offset
 	if (g_cpu->error_flag == true)
 	{
 		return;
 	}
-	int old_pc = g_cpu->pc;
-	uint16_t num_args, num_locals;
 
+	old_pc = g_cpu->pc;
 	if (offset < 0 || offset >= g_cpu->code_mem_size)
 	{
 		fprintf(stderr, "[ERR] Invalid method address. In \"interpreter.c::exec_op_invokevirtual\".\n");
@@ -391,36 +387,6 @@ static inline void exec_op_gc(void)
 }
 
 
-static inline void exec_op_netbind(void)
-{
-	
-}
-
-
-static inline void exec_op_netconnect(void)
-{
-
-}
-
-
-static inline void exec_op_netin(void)
-{
-
-}
-
-
-static inline void exec_op_netout(void)
-{
-
-}
-
-
-static inline void exec_op_netclose(void)
-{
-
-}
-
-
 void run(void)
 {
 	dprintf("[VM START]\n");
@@ -530,24 +496,10 @@ bool step(void)
 	case OP_GC:
 		exec_op_gc();
 		break;
-	case OP_NETBIND:
-		exec_op_netbind();
-		break;
-	case OP_NETCONNECT:
-		exec_op_netconnect();
-		break;
-	case OP_NETIN:
-		exec_op_netin();
-		break;
-	case OP_NETOUT:
-		exec_op_netout();
-		break;
-	case OP_NETCLOSE:
-		exec_op_netclose();
-		break;
 	default:
 		fprintf(stderr, "[ERR] Invalid instruction. In \"interpreter.c::step\".\n");
-		destroy_ijvm_now();
+		g_cpu->error_flag = true;
+		return false;
 	}
 
 #ifdef DEBUG

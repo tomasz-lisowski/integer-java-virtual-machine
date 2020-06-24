@@ -2,7 +2,7 @@
 #include "util.h"
 
 
-// Declarations for static functions
+// Declarations of static functions
 static bool check_file_signature(uint32_t magic_number);
 static bool load_consts(FILE* f);
 static bool load_code(FILE* f);

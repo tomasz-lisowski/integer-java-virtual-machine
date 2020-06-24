@@ -1,7 +1,7 @@
 #include "ijdb.h"
 
 
-// Declarations for static functions
+// Declarations of static functions
 static void print_frame_stack(void);
 static void print_frame_local_vars(void);
 static void print_all_breakpoints(void);

@@ -1,7 +1,7 @@
 #include "array.h"
 
 
-// Declarations for static functions
+// Declarations of static functions
 static void init_arr_id_mem(void);
 static inline uint32_t ref_to_index(word_t arr_ref);
 static inline word_t index_to_ref(uint32_t i);
@@ -33,7 +33,6 @@ static struct ArrIDMem
 /**
 * Called when creating the first ever array.
 * It handles allocation and initialization of array identity memory.
-* Sets CPU's error flag on failure.
 **/
 static void init_arr_id_mem(void)
 {
@@ -150,7 +149,6 @@ static uint32_t get_unclaimed_array_index(void)
 * Allocate then initialize a new array
 * Return  true on success
 *         false on failure
-* Sets CPU's error flag on failure.
 **/
 static bool create_array(uint32_t arr_i, uint32_t count)
 {
@@ -181,7 +179,7 @@ word_t get_arr_element(word_t arr_ref, word_t i)
 	word_t* arr_ptr;
 	uint32_t arr_size;
 
-	if ((arr_ref & k_index_to_ref) != 0xAA00000A)
+	if (((uint32_t)arr_ref & k_index_to_ref) != 0xAA00000A)
 	{
 		fprintf(stderr, "[ERR] Invalid array reference. In \"array.c::get_arr_element\".\n");
 		destroy_ijvm_now();
@@ -218,7 +216,7 @@ void set_arr_element(word_t arr_ref, word_t i, word_t new_val)
 	word_t* arr_ptr;
 	uint32_t arr_size;
 
-	if ((arr_ref & k_index_to_ref) != 0xAA00000A)
+	if (((uint32_t)arr_ref & k_index_to_ref) != 0xAA00000A)
 	{
 		fprintf(stderr, "[ERR] Invalid array reference. In \"array.c::get_arr_element\".\n");
 		destroy_ijvm_now();
@@ -322,7 +320,7 @@ static void mark_arrays(bool* marked_arrays)
 	for (int mem_ptr = 0; mem_ptr <= g_cpu->sp; mem_ptr++)
 	{
 		mem_data = g_cpu->stack[mem_ptr];
-		if ((mem_data & (word_t)k_index_to_ref) == 0xAA00000A) 
+		if (((uint32_t)mem_data & k_index_to_ref) == 0xAA00000A) 
 		{
 			continue; // Entry in memory is definately not an array reference
 		}
@@ -356,7 +354,7 @@ static void mark_arrays(bool* marked_arrays)
 		arr_size = (uint32_t)arr_ptr[0];
 		for (uint32_t j = 1; j <= arr_size; j++)
 		{
-			if ((arr_ptr[j] & (word_t)k_index_to_ref) == 0xAA00000A ||
+			if (((uint32_t)arr_ptr[j] & k_index_to_ref) == 0xAA00000A ||
 				j == i)
 			{
 				/**

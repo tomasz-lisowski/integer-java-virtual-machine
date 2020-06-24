@@ -7,6 +7,9 @@
 #include <stdbool.h> // Contains bool type
 
 
+#define SIZE_MAX_UINT32_T (~(uint32_t)0)
+
+
 typedef uint8_t byte_t; // Code memory is typed as uint8
 typedef int32_t word_t; // All other memory is typed as int32
 

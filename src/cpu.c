@@ -1,7 +1,7 @@
 #include "cpu.h"
 
 
-// Declarations for static functions
+// Declarations of static functions
 static bool octuple_stack_size(void);
 
 

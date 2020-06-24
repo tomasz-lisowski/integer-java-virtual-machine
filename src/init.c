@@ -1,7 +1,7 @@
 #include "init.h"
 
 
-// Declarations for static functions
+// Declarations of static functions
 static int32_t get_num_local_vars_main(void);
 static void init_stack(void);
 static void init_registers(void);
