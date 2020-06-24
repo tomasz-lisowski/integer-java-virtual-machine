@@ -44,7 +44,7 @@ bool stack_push(word_t e)
 
 word_t stack_pop(void)
 {
-    if (g_cpu->sp < g_cpu->lv)
+    if (g_cpu->sp < g_cpu->lv || g_cpu->sp == -1)
     {
         printf("[ERR] Failed to pop off the stack because the stack is empty. In \"cpu.c::stack_pop\".\n");
         destroy_ijvm_now();

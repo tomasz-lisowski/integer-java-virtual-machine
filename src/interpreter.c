@@ -234,11 +234,11 @@ static inline void exec_op_ireturn(void)
 	g_cpu->lv = stack_pop();
 	g_cpu->sp -= old_nv; // Remove all local variables and arguments from stack
 
-	if (g_cpu->sp < -1 || 
-		g_cpu->pc < 0 || 
-		g_cpu->fp < 0 || 
-		g_cpu->nv < 0 || 
-		g_cpu->lv < 0)
+	if (g_cpu->sp < -1 || g_cpu->sp >= g_cpu->stack_size ||
+		g_cpu->pc < 0 || g_cpu->pc >= g_cpu->code_mem_size ||
+		g_cpu->fp < 0 || g_cpu->fp >= g_cpu->stack_size ||
+		g_cpu->nv < 0 || g_cpu->lv >= g_cpu->stack_size ||
+		g_cpu->lv < 0 || g_cpu->lv >= g_cpu->stack_size)
 	{
 		fprintf(stderr, "[ERR] Program tried removing a stack frame that did not exist. In \"interpreter.c::exec_op_ireturn\".\n");
 		destroy_ijvm_now();
