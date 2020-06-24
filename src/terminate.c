@@ -3,16 +3,16 @@
 
 void destroy_ijvm(void)
 {
-	// ISO-IEC 9899: free(NULL) becomes a NOP
-	destroy_arrays();
-	destroy_cpu();
-	dprintf("[DESTROY IJVM]\n");
+    // ISO-IEC 9899: free(NULL) becomes a NOP
+    destroy_arrays();
+    destroy_cpu();
+    dprintf("[DESTROY IJVM]\n");
 }
 
 
 void destroy_ijvm_now(void)
 {
-	destroy_ijvm();
-	exit(0);
+    destroy_ijvm();
+    exit(0);
 }
 

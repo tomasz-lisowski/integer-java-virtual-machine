@@ -13,17 +13,17 @@
 
 typedef struct CPU_t
 {
-	// Sizes are in "elements" units
-	int const_mem_size;
-	int code_mem_size;
-	int stack_size;
-	
-	word_t* const_mem;
-	byte_t* code_mem;
-	word_t* stack;
+    // Sizes are in "elements" units
+    int const_mem_size;
+    int code_mem_size;
+    int stack_size;
+    
+    word_t* const_mem;
+    byte_t* code_mem;
+    word_t* stack;
 
-	int pc;
-	int sp;
+    int pc;
+    int sp;
     int fp;
     int lv;
     int nv; // Number of vars in current frame (number of arguments + local variables)

@@ -23,15 +23,15 @@ uint32_t swap_uint32(uint32_t num)
 
 uint64_t power(uint32_t base, uint32_t power)
 {
-	if (power == 0)
-	{
-		return 1;
-	}
-	for (uint32_t i = 0; i < power; i++)
-	{
-		base *= power;
-	}
-	return base;
+    if (power == 0)
+    {
+        return 1;
+    }
+    for (uint32_t i = 0; i < power; i++)
+    {
+        base *= power;
+    }
+    return base;
 }
 
 

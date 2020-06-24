@@ -13,10 +13,10 @@
 **/
 typedef struct SymbolBlock_t
 {
-	int64_t num;
-	uint32_t* addr;
-	char* names;
-	uint32_t* names_start; // Offsets to the start of each name in names memory
+    int64_t num;
+    uint32_t* addr;
+    char* names;
+    uint32_t* names_start; // Offsets to the start of each name in names memory
 }SymbolBlock_t;
 
 
@@ -25,8 +25,8 @@ typedef struct SymbolBlock_t
 **/
 typedef struct DebugData_t
 {
-	SymbolBlock_t func_label; // Function labels
-	SymbolBlock_t sec_label; // Function section labels
+    SymbolBlock_t func_label; // Function labels
+    SymbolBlock_t sec_label; // Function section labels
 }DebugData_t;
 
 

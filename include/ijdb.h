@@ -27,21 +27,21 @@ typedef enum EProgramState { EMPTY, LOADED, STARTED, FINISHED }EProgramState;
 **/
 typedef struct Breakpoints_t
 {
-	uint32_t num;
-	uint32_t* addrs;
+    uint32_t num;
+    uint32_t* addrs;
 }Breakpoints_t;
 
 
 typedef struct DebuggerState_t
 {
-	bool quit_flag; // Quit flag is set to true when a critical error occurs
-	char* last_prog_path;
-	EProgramState prog_state;
-	Breakpoints_t brkpts;
+    bool quit_flag; // Quit flag is set to true when a critical error occurs
+    char* last_prog_path;
+    EProgramState prog_state;
+    Breakpoints_t brkpts;
 
-	uint32_t* call_history;
-	uint32_t call_history_top;
-	uint32_t call_history_size;
+    uint32_t* call_history;
+    uint32_t call_history_top;
+    uint32_t call_history_size;
 }DebuggerState_t;
 
 
