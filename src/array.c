@@ -7,14 +7,15 @@ static inline word_t index_to_ref(uint32_t arr_i);
 static word_t arr_store(word_t* arr);
 static void arr_check_bounds(word_t arr_ref, word_t i);
 static void arr_remove(uint32_t arr_i);
-static void mark_arrays(bool* marked_arrays);
-static uint32_t sweep_arrays(bool* marked_arrays);
+static void mark_arrays(void);
+static uint32_t sweep_arrays(void);
 
 
 static const uint32_t k_index_to_ref = 0xAA00000A;
 static const uint32_t k_ref_to_index = 0x00FFFFF0;
 
 static MArr_t arr_mem = { 0, NULL, NULL }; // Keep track of arrays
+static bool* marked_arrays;
 
 
 /**
@@ -166,13 +167,14 @@ void arr_destroy(void)
         }
     }
     marr_destroy(&arr_mem);
+    free(marked_arrays);
 }
 
 
 /**
 * Mark all inaccessible arrays and return the number of marked arrays
 **/
-static void mark_arrays(bool* marked_arrays)
+static void mark_arrays(void)
 {
     word_t stack_el;
 
@@ -242,7 +244,7 @@ static void mark_arrays(bool* marked_arrays)
 /**
 * Sweep all inaccessible arrays and return the number of arrays that were removed
 **/
-static uint32_t sweep_arrays(bool* marked_arrays)
+static uint32_t sweep_arrays(void)
 {
     uint32_t num_swept = 0;
     for (uint32_t i = 0; i < arr_mem.size; i++)
@@ -259,17 +261,18 @@ static uint32_t sweep_arrays(bool* marked_arrays)
 
 uint32_t arr_gc(void)
 {
-    bool marked_arrays[arr_mem.size];
-    memset(marked_arrays, false, sizeof(marked_arrays));
-
     uint32_t num_freed;
+
+    free(marked_arrays);
+    marked_arrays = (bool*)calloc(arr_mem.size, sizeof(bool));
     if (marked_arrays == NULL)
     {
         fprintf(stderr, "[ERR] Failed to allocate memory. In \"array.c::arr_gc\".\n");
         destroy_ijvm_now();
     }
-    mark_arrays(marked_arrays);
-    num_freed = sweep_arrays(marked_arrays);
+
+    mark_arrays();
+    num_freed = sweep_arrays();
 
     return num_freed;
 }

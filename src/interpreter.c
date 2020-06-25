@@ -91,10 +91,7 @@ static inline void exec_op_ldc_w(void)
 {
     uint16_t const_index = (uint16_t)get_arg_short();
     word_t const_val = get_constant(const_index);
-    if (g_cpu->error_flag == false)
-    {
-        stack_push(const_val);
-    }
+    stack_push(const_val);
 }
 
 
@@ -266,10 +263,6 @@ static inline void exec_op_invokevirtual(void)
     int old_pc;
     uint16_t num_args, num_locals;
     word_t offset = get_constant(get_arg_short()); // Move PC to return address while getting offset
-    if (g_cpu->error_flag == true)
-    {
-        return;
-    }
 
     old_pc = g_cpu->pc;
     if (offset < 0 || offset >= g_cpu->code_mem_size)
@@ -302,10 +295,7 @@ static inline void exec_op_invokevirtual(void)
         destroy_ijvm_now();
     }
 
-    if (g_cpu->error_flag == false)
-    {
-        memset(&g_cpu->stack[g_cpu->lv + num_args], 0, (uint16_t)num_locals * sizeof(uint32_t)); // Init local variables to 0
-    }
+    memset(&g_cpu->stack[g_cpu->lv + num_args], 0, (uint16_t)num_locals * sizeof(uint32_t)); // Init local variables to 0
 
     /**
     * Stack after call:
@@ -555,18 +545,15 @@ bool step(void)
         return false;
     }
 #ifdef DEBUG
-    if (g_cpu->error_flag == false)
-    {
-        dprintf("OPC: %-4i OP: %-14s", old_pc, op);
-        print_cpu_registers(true);
-        dprintf("  ");
-        print_cpu_stack(true);
-        dprintf("    ");
-        print_cpu_local_vars(true);
-        dprintf("    ");
-        arr_print(true);
-        dprintf("\n");
-    }
+    dprintf("OPC: %-4i OP: %-14s", old_pc, op);
+    print_cpu_registers(true);
+    dprintf("  ");
+    print_cpu_stack(true);
+    dprintf("    ");
+    print_cpu_local_vars(true);
+    dprintf("    ");
+    arr_print(true);
+    dprintf("\n");
 #endif
     return true;
 }

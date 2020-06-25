@@ -45,10 +45,6 @@ static int32_t get_num_local_vars_main(void)
 
         case OP_INVOKEVIRTUAL:
             addr = get_constant(get_code_short((int)i + 1));
-            if (g_cpu->error_flag == true)
-            {
-                return 0;
-            }
             if (addr > 0 && addr < (int64_t)addr_first_method_after_main && addr < g_cpu->code_mem_size)
             {
                 addr_first_method_after_main = (uint32_t)addr;
@@ -132,7 +128,7 @@ static void init_stack(void)
 {
     int32_t main_num_vars = get_num_local_vars_main();
     int tmp_mem_size;
-    if (main_num_vars < 0 || g_cpu->error_flag == true)
+    if (main_num_vars < 0)
     {
         fprintf(stderr, "[ERR] Invalid number of arguments in main method. In \"init.c::init_stack\".\n");
         destroy_ijvm_now();
@@ -162,10 +158,7 @@ static void init_stack(void)
     g_cpu->nv = (int)(main_num_vars);
     g_cpu->fp = (int)(main_num_vars);
 
-    if (g_cpu->error_flag == false)
-    {
-        memset(g_cpu->stack, 0, (uint32_t)g_cpu->nv * sizeof(uint32_t)); // Init local variables to 0
-    }
+    memset(g_cpu->stack, 0, (uint32_t)g_cpu->nv * sizeof(uint32_t)); // Init local variables to 0
 }
 
 

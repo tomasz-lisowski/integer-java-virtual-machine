@@ -66,7 +66,7 @@ static bool octuple_stack_size(void)
     uint64_t expected_size = (uint64_t)g_cpu->stack_size * (uint8_t)sizeof(word_t) * 8;
     if (expected_size >= 4294967296 || expected_size == 0)
     {
-        fprintf(stderr, "[ERR] Program needs more memory than is possible inside IJVM. In \"cpu.c::octuple_stack_size\".\n");
+        fprintf(stderr, "[ERR] Out of memory. In \"cpu.c::octuple_stack_size\".\n");
         destroy_ijvm_now();
     }
 

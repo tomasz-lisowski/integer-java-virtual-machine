@@ -22,6 +22,7 @@ static void print_usage(void)
 
 static void interrupt_handler(int sig)
 {
+    signal(sig, SIG_IGN);
     destroy_ijvm_now();
 }
 
