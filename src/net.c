@@ -3,7 +3,8 @@
 
 // Declarations of static functions
 static inline uint32_t ref_to_index(word_t net_ref);
-static inline word_t index_to_ref(uint32_t i);
+static inline word_t index_to_ref(uint32_t net_i);
+static void net_check_ref(word_t net_ref);
 static word_t socket_create(uint32_t host, uint16_t port);
 static word_t socket_store(Sock_t* sock);
 
@@ -15,7 +16,7 @@ static MArr_t net_conn = {0, NULL, NULL}; // Keep track of connections
 
 
 /**
-* Recover index from network reference
+* Recover network index from network reference
 **/
 static inline uint32_t ref_to_index(word_t net_ref)
 {
@@ -24,11 +25,11 @@ static inline uint32_t ref_to_index(word_t net_ref)
 
 
 /**
-* Create a network reference from index
+* Create a network reference from network index
 **/
-static inline word_t index_to_ref(uint32_t i)
+static inline word_t index_to_ref(uint32_t net_i)
 {
-    return (word_t)(k_index_to_ref | (i << 4));
+    return (word_t)(k_index_to_ref | (net_i << 4));
 }
 
 
@@ -51,7 +52,20 @@ static word_t socket_create(uint32_t host, uint16_t port)
 
 
 /**
-* Add the socket to network connections.
+* Utility to check if network reference is valid
+**/
+static void net_check_ref(word_t net_ref)
+{
+    if (((uint32_t)net_ref & k_index_to_ref) != k_index_to_ref)
+    {
+        fprintf(stderr, "[ERR] Invalid network reference or program requires more connections than is possible. In \"net.c::net_check_ref\".\n");
+        destroy_ijvm_now();
+    }
+}
+
+
+/**
+* Add the socket to network connections so it can be tracked/modified.
 * Return  network reference of saved socket
 **/
 static word_t socket_store(Sock_t* sock)
@@ -70,16 +84,12 @@ static word_t socket_store(Sock_t* sock)
     if (net_i == SIZE_MAX_UINT32_T)
     {
         marr_resize(&net_conn, net_conn.size + 16);
-        net_i = (word_t)marr_add_element(&net_conn, (uintptr_t)sock);
+        net_i = marr_add_element(&net_conn, (uintptr_t)sock);
     }
 
     // Return network reference
     net_ref = index_to_ref(net_i);
-    if ((net_ref & k_index_to_ref) != k_index_to_ref)
-    {
-        fprintf(stderr, "[ERR] Program requires more network connections than is supported. In \"net.c::socket_store\".\n");
-        destroy_ijvm_now();
-    }
+    net_check_ref(net_ref);
     return net_ref;
 }
 
@@ -89,8 +99,8 @@ word_t net_bind(word_t port)
     word_t net_ref = socket_create(INADDR_ANY, (uint16_t)port);
     uint32_t net_i = ref_to_index(net_ref);
     Sock_t* sock = (Sock_t*)marr_get_element(&net_conn, net_i);
-    int success;
-    success = bind(sock->fd, (struct sockaddr*)&sock->addr, sock->addr_len);
+    
+    int success = bind(sock->fd, (struct sockaddr*)&sock->addr, sock->addr_len);
     if (success == -1)
     {
         return 0; // Failed to bind a socket
@@ -100,6 +110,7 @@ word_t net_bind(word_t port)
     {
         return 0; // Failed to start listening for connection
     }
+
     /**
     * Primary socket is listening for connections.
     * Secondary socket is part of the connection.
@@ -120,8 +131,8 @@ word_t net_connect(word_t host, word_t port)
     word_t net_ref = socket_create((uint32_t)host, (uint16_t)port);
     uint32_t net_i = ref_to_index(net_ref);
     Sock_t* sock = (Sock_t*)marr_get_element(&net_conn, net_i);
-    int success;
-    success = connect(sock->fd, (struct sockaddr*)&sock->addr, sock->addr_len);
+
+    int success = connect(sock->fd, (struct sockaddr*)&sock->addr, sock->addr_len);
     if (success == -1)
     {
         return 0; // Failed to connect
@@ -134,10 +145,16 @@ word_t net_connect(word_t host, word_t port)
 
 char net_recv(word_t net_ref)
 {
-    uint32_t net_i = ref_to_index(net_ref);
-    Sock_t* sock = (Sock_t*)marr_get_element(&net_conn, net_i);
-    uint32_t bytes_recvd = 0;
+    uint32_t net_i;
+    Sock_t* sock;
+    ssize_t bytes_recvd = 0;
     char data_buffer = 0;
+
+    net_check_ref(net_ref);
+    net_i = ref_to_index(net_ref);
+    sock = (Sock_t*)marr_get_element(&net_conn, net_i);
+
+    // Receive data
     if (sock->client == true && sock->server == false)
     {
         bytes_recvd = recv(sock->fd, &data_buffer, 1, 0);
@@ -152,6 +169,7 @@ char net_recv(word_t net_ref)
         destroy_ijvm_now();
     }
 
+    // Verify read
     if (bytes_recvd != 1)
     {
         fprintf(stderr, "[ERR] Received unexpected number of bytes. In \"net.c::net_recv\".\n");
@@ -163,9 +181,15 @@ char net_recv(word_t net_ref)
 
 void net_send(word_t net_ref, word_t data)
 {
-    uint32_t bytes_sent = 0;
-    uint32_t net_i = ref_to_index(net_ref);
-    Sock_t* sock = (Sock_t*)marr_get_element(&net_conn, net_i);
+    uint32_t net_i;
+    Sock_t* sock;
+    ssize_t bytes_sent = 0;
+
+    net_check_ref(net_ref);
+    net_i = ref_to_index(net_ref);
+    sock = (Sock_t*)marr_get_element(&net_conn, net_i);
+
+    //Send data
     if (sock->client == true && sock->server == false)
     {
         bytes_sent = send(sock->fd, &data, 4, 0);
@@ -180,6 +204,7 @@ void net_send(word_t net_ref, word_t data)
         destroy_ijvm_now();
     }
 
+    // Verify read
     if (bytes_sent != 4)
     {
         fprintf(stderr, "[ERR] Sent unexpected number of bytes. In \"net.c::net_send\".\n");
@@ -190,8 +215,12 @@ void net_send(word_t net_ref, word_t data)
 
 void net_close(word_t net_ref)
 {
-    uint32_t net_i = ref_to_index(net_ref);
-    Sock_t* sock = (Sock_t*)marr_get_element(&net_conn, net_i);
+    uint32_t net_i;
+    Sock_t* sock;
+
+    net_check_ref(net_ref);
+    net_i = ref_to_index(net_ref);
+    sock = (Sock_t*)marr_get_element(&net_conn, net_i);
     if (sock->client == true)
     {
         shutdown(sock->fd, 2);
@@ -220,7 +249,5 @@ void net_destroy(void)
             net_close(index_to_ref(net_i));
         }
     }
-    free(net_conn.map);
-    free(net_conn.values);
+    marr_destroy(&net_conn);
 }
-

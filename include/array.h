@@ -2,8 +2,7 @@
 #define ARRAY_H
 
 
-#include <stdlib.h> // For calloc and malloc
-#include <string.h> // For memcpy
+#include <stdlib.h> // calloc
 
 
 #include "types.h"
@@ -13,43 +12,41 @@
 
 
 /**
-* Return the ith element from array identified by arr_ref
-* Set CPU's error flag on failure.
-**/
-word_t get_arr_element(word_t arr_ref, word_t i);
-
-
-/**
-* Overwrite the i'th element from array indentified by arr_ref with new_val.
-* Set CPU's error flag on failure.
-**/
-void set_arr_element(word_t arr_ref, word_t i, word_t new_val);
-
-
-/**
-* Control how the new array is created and if it's possible to create it.
+* Create a new array.
 * Return  array reference on success
-*         0 on failure and set CPU's error flag
+*         0 on failure
 **/
-word_t start_array_creation(word_t count);
+word_t arr_create(word_t count);
 
 
 /**
-* Free all arrays and all other data used to manage them
+* Get a value from the array
 **/
-void destroy_arrays(void);
+word_t arr_get(word_t arr_ref, word_t i);
+
+
+/**
+* Change value inside array
+**/
+void arr_set(word_t arr_ref, word_t i, word_t val);
+
+
+/**
+* Free all arrays and related data
+**/
+void arr_destroy(void);
 
 
 /**
 * Free unreachable arrays and return the number of arrays that were free'd
 **/
-uint32_t gc_arrays(void);
+uint32_t arr_gc(void);
 
 
 /**
 * Print out all active array references
 **/
-void print_arr_refs(bool compact);
+void arr_print(bool compact);
 
 
 #endif

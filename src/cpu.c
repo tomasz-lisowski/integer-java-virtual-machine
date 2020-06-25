@@ -46,7 +46,7 @@ word_t stack_pop(void)
 {
     if (g_cpu->sp < g_cpu->lv || g_cpu->sp == -1)
     {
-        printf("[ERR] Failed to pop off the stack because the stack is empty. In \"cpu.c::stack_pop\".\n");
+        fprintf(stderr, "[ERR] Failed to pop off the stack because the stack is empty. In \"cpu.c::stack_pop\".\n");
         destroy_ijvm_now();
     }
     return (g_cpu->stack)[g_cpu->sp--];
@@ -66,7 +66,7 @@ static bool octuple_stack_size(void)
     uint64_t expected_size = (uint64_t)g_cpu->stack_size * (uint8_t)sizeof(word_t) * 8;
     if (expected_size >= 4294967296 || expected_size == 0)
     {
-        printf("[ERR] Program needs more memory than is possible inside IJVM. In \"cpu.c::octuple_stack_size\".\n");
+        fprintf(stderr, "[ERR] Program needs more memory than is possible inside IJVM. In \"cpu.c::octuple_stack_size\".\n");
         destroy_ijvm_now();
     }
 
@@ -78,11 +78,11 @@ static bool octuple_stack_size(void)
     {
         g_cpu->stack_size = g_cpu->stack_size / 8;
         g_cpu->stack = tmp_stack;
-        if (gc_arrays() != 0)
+        if (arr_gc() != 0)
         {
             return octuple_stack_size(); // Run GC to be sure memory allocation error is not caused by garbage
         }
-        printf("[ERR] Failed to allocate memory. In \"cpu.c::octuple_stack_size\".\n");
+        fprintf(stderr, "[ERR] Failed to allocate memory. In \"cpu.c::octuple_stack_size\".\n");
         destroy_ijvm_now();
     }
 

@@ -1,4 +1,5 @@
 #include <time.h>
+#include <signal.h>
 
 
 #include "init.h"
@@ -9,6 +10,7 @@
 
 // Declarations of static functions
 static void print_usage(void);
+static void interrupt_handler(int sig);
 
 
 static void print_usage(void)
@@ -18,11 +20,18 @@ static void print_usage(void)
 }
 
 
+static void interrupt_handler(int sig)
+{
+    destroy_ijvm_now();
+}
+
+
 int main(int argc, char** argv)
 {
     clock_t start, end;
     double cpu_time_used;
     start = clock();
+    signal(SIGINT, interrupt_handler);
 
     if (argc < 2)
     {

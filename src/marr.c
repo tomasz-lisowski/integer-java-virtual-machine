@@ -9,6 +9,7 @@ static uint32_t get_free_index(MArr_t* marr);
 * Find an unclaimed index in the mapped array and return it.
 * Return  index on sucess
 *         SIZE_MAX_UINT32_T on failure
+* SIZE_MAX_UINT32_T is used as a special value because there will never be this many elements.
 **/
 static uint32_t get_free_index(MArr_t* marr)
 {
@@ -44,6 +45,11 @@ void marr_resize(MArr_t* marr, uint32_t new_size)
     uint32_t tmp_new_size = new_size;
     MArr_t tmp_marr = *marr;
 
+    if (new_size < marr->size)
+    {
+        fprintf(stderr, "[ERR] New size cannot be less than the old size. In \"marr.c::marr_resize\".\n");
+        destroy_ijvm_now();
+    }
     if (new_size >= SIZE_MAX_UINT32_T)
     {
         fprintf(stderr, "[ERR] Exceeded the size limit of a mapped array. In \"marr.c::marr_resize\".\n");
@@ -56,7 +62,7 @@ void marr_resize(MArr_t* marr, uint32_t new_size)
     if (marr->map == NULL || marr->values == NULL)
     {
         *marr = tmp_marr;
-        if (gc_arrays() != 0)
+        if (arr_gc() != 0)
         {
             marr_resize(marr, new_size); // Run GC to be sure memory allocation error is not caused by garbage
             return;
@@ -118,7 +124,7 @@ uintptr_t marr_get_element(MArr_t* marr, uint32_t val_i)
         fprintf(stderr, "[ERR] Tried to access out of bounds memory in mapped array. In \"marr.c::marr_get_element\".\n");
         destroy_ijvm_now();
     }
-    if (marr->map[val_i] == false)
+    if (marr->map[val_i] != true)
     {
         fprintf(stderr, "[ERR] Tried to access unclaimed element. In \"marr.c::marr_get_element\".\n");
         destroy_ijvm_now();
@@ -144,7 +150,11 @@ void marr_destroy(MArr_t* marr)
 {
     free(marr->map);
     free(marr->values);
-    marr->size = 0; // Not necessary
+
+    // Not necessary but eh...
+    marr->map = NULL;
+    marr->values = NULL;
+    marr->size = 0;
 }
 
 

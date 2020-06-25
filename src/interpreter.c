@@ -366,7 +366,7 @@ static inline void exec_op_halt(void)
 static inline void exec_op_newarray(void)
 {
     word_t count = stack_pop();
-    stack_push(start_array_creation(count));
+    stack_push(arr_create(count));
 }
 
 
@@ -374,7 +374,7 @@ static inline void exec_op_iaload(void)
 {
     word_t array_ref = stack_pop();
     word_t i = stack_pop();
-    stack_push(get_arr_element(array_ref, i));
+    stack_push(arr_get(array_ref, i));
 }
 
 
@@ -383,13 +383,13 @@ static inline void exec_op_iastore(void)
     word_t array_ref = stack_pop();
     word_t i = stack_pop();
     word_t val = stack_pop();
-    set_arr_element(array_ref, i, val);
+    arr_set(array_ref, i, val);
 }
 
 
 static inline void exec_op_gc(void)
 {
-    gc_arrays();
+    arr_gc();
 }
 
 
@@ -564,7 +564,7 @@ bool step(void)
         dprintf("    ");
         print_cpu_local_vars(true);
         dprintf("    ");
-        print_arr_refs(true);
+        arr_print(true);
         dprintf("\n");
     }
 #endif

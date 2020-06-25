@@ -41,7 +41,7 @@ char* str_dup(char* src)
     char* dst = (char*)malloc(len);
     if (dst == NULL)
     {
-        if (gc_arrays() != 0)
+        if (arr_gc() != 0)
         {
             return str_dup(src); // Run GC to be sure memory allocation error is not caused by garbage
         }
