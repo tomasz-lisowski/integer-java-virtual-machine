@@ -35,6 +35,12 @@ static inline void exec_op_iaload(void);
 static inline void exec_op_iastore(void);
 static inline void exec_op_gc(void);
 
+static inline void exec_op_netbind(void);
+static inline void exec_op_netconnect(void);
+static inline void exec_op_netin(void);
+static inline void exec_op_netout(void);
+static inline void exec_op_netclose(void);
+
 
 static bool next_op_wide = false;
 
@@ -387,6 +393,43 @@ static inline void exec_op_gc(void)
 }
 
 
+static inline void exec_op_netbind(void)
+{
+    word_t port = stack_pop();
+    stack_push(net_bind(port));
+}
+
+
+static inline void exec_op_netconnect(void)
+{
+    word_t port = stack_pop();
+    word_t host = stack_pop();
+    stack_push(net_connect(host, port));
+}
+
+
+static inline void exec_op_netin(void)
+{
+    word_t net_ref = stack_pop();
+    stack_push(net_recv(net_ref));
+}
+
+
+static inline void exec_op_netout(void)
+{
+    word_t net_ref = stack_pop();
+    word_t data = stack_pop();
+    net_send(net_ref, data);
+}
+
+
+static inline void exec_op_netclose(void)
+{
+    word_t net_ref = stack_pop();
+    net_close(net_ref);
+}
+
+
 void run(void)
 {
     dprintf("[VM START]\n");
@@ -404,11 +447,6 @@ bool step(void)
     int old_pc = g_cpu->pc;
     const char* op = op_decode((g_cpu->code_mem)[g_cpu->pc]);
 #endif
-    if (g_cpu->pc < 0 || g_cpu->pc >= g_cpu->code_mem_size)
-    {
-        g_cpu->error_flag = true;
-        return false;
-    }
 
     switch ((g_cpu->code_mem)[(g_cpu->pc)++])
     {
@@ -496,12 +534,26 @@ bool step(void)
     case OP_GC:
         exec_op_gc();
         break;
+    case OP_NETBIND:
+        exec_op_netbind();
+        break;
+    case OP_NETCONNECT:
+        exec_op_netconnect();
+        break;
+    case OP_NETIN:
+        exec_op_netin();
+        break;
+    case OP_NETOUT:
+        exec_op_netout();
+        break;
+    case OP_NETCLOSE:
+        exec_op_netclose();
+        break;
     default:
         fprintf(stderr, "[ERR] Invalid instruction. In \"interpreter.c::step\".\n");
         g_cpu->error_flag = true;
         return false;
     }
-
 #ifdef DEBUG
     if (g_cpu->error_flag == false)
     {
@@ -516,14 +568,13 @@ bool step(void)
         dprintf("\n");
     }
 #endif
-
     return true;
 }
 
 
 bool finished(void)
 {
-    bool end_of_code = g_cpu->pc >= g_cpu->code_mem_size;
+    bool end_of_code = g_cpu->pc < 0 || g_cpu->pc >= g_cpu->code_mem_size;
     bool cpu_err = g_cpu->error_flag;
     bool cpu_halt = g_cpu->halt_flag;
 

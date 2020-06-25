@@ -27,4 +27,19 @@
 #define ARRAYS_MAX_NUM 1048576 // Elements
 
 
+/**
+* Start at this number of connections then resize if necessary
+**/
+#define NET_CONN_MIN_NUM 16 // Connections
+/**
+* From EE00000E to EEFFFFFE (inclusive)
+* which means 16^5 = 1048576 unique network references
+**/
+#define NET_CONN_MAX_NUM 128 // Connnections
+/**
+* Maximum queue length for pending connections
+**/
+#define NET_MAX_BACKLOG 1
+
+
 #endif

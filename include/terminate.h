@@ -7,6 +7,7 @@
 
 #include "cpu.h"
 #include "array.h"
+#include "net.h"
 
 
 /**

@@ -8,6 +8,7 @@
 #include "util.h"
 #include "init.h"
 #include "array.h"
+#include "net.h"
 
 
 /**
