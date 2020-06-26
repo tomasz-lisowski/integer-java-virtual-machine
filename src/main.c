@@ -55,7 +55,6 @@ int main(int argc, char** argv)
             return -1;
         }
         set_input(in_file);
-        
     }
 
     if (argc == 4)

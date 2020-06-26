@@ -93,7 +93,7 @@ word_t arr_create(word_t count)
         destroy_ijvm_now();
     }
     
-    arr_ptr[0] = (word_t)count; // First element stores array's size in 'elements' units
+    arr_ptr[0] = count; // First element stores array's size in 'elements' units
     arr_ref = arr_store(arr_ptr);
     return arr_ref;
 }
@@ -139,7 +139,7 @@ word_t arr_get(word_t arr_ref, word_t i)
     arr_i = ref_to_index(arr_ref);
     arr_check_bounds(arr_ref, i);
     arr_ptr = (word_t*)marr_get_element(&arr_mem, arr_i);
-    return arr_ptr[(uint32_t)i + 1]; // First element is at index 1 (0'th element stores array size)
+    return arr_ptr[i + 1]; // First element is at index 1 (0'th element stores array size)
 }
 
 
@@ -151,7 +151,7 @@ void arr_set(word_t arr_ref, word_t i, word_t val)
     arr_i = ref_to_index(arr_ref);
     arr_check_bounds(arr_ref, i);
     arr_ptr = (word_t*)marr_get_element(&arr_mem, arr_i);
-    arr_ptr[(uint32_t)i + 1] = val; // First element is at index 1 (0'th element stores array size)
+    arr_ptr[i + 1] = val; // First element is at index 1 (0'th element stores array size)
 }
 
 
@@ -226,7 +226,7 @@ static void mark_arrays(void)
         arr_i = marked_i;
         arr_ptr = (word_t*)marr_get_element(&arr_mem, arr_i);
         arr_size = (uint32_t)arr_ptr[0];
-        for (uint32_t el_i = 1; el_i <= arr_size; el_i++)
+        for (word_t el_i = 1; (uint32_t)el_i <= arr_size; el_i++)
         {
             arr_el = arr_ptr[el_i];
             if (((uint32_t)arr_el & k_index_to_ref) != k_index_to_ref)
