@@ -10,7 +10,7 @@
 
 // Declarations of static functions
 static void print_usage(void);
-static void interrupt_handler(int sig);
+static void interrupt_handler(const int sig);
 
 
 static void print_usage(void)
@@ -20,7 +20,7 @@ static void print_usage(void)
 }
 
 
-static void interrupt_handler(int sig)
+static void interrupt_handler(const int sig)
 {
     signal(sig, SIG_IGN);
     destroy_ijvm_now();

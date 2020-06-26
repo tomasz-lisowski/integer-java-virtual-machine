@@ -126,7 +126,7 @@ static int32_t get_num_local_vars_main(void)
 **/
 static void init_stack(void)
 {
-    int32_t main_num_vars = get_num_local_vars_main();
+    const int32_t main_num_vars = get_num_local_vars_main();
     int tmp_mem_size;
     if (main_num_vars < 0)
     {
@@ -181,7 +181,7 @@ static void init_cpu_flags(void)
 }
 
 
-int init_ijvm(char* binary_path)
+int init_ijvm(const char* binary_path)
 {
     if (load_bin(binary_path) != true)
     {

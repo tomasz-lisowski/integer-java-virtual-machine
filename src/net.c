@@ -2,11 +2,11 @@
 
 
 // Declarations of static functions
-static inline uint32_t ref_to_index(word_t net_ref);
-static inline word_t index_to_ref(uint32_t net_i);
-static void net_check_ref(word_t net_ref);
-static word_t socket_create(uint32_t host, uint16_t port);
-static word_t socket_store(Sock_t* sock);
+static inline uint32_t ref_to_index(const word_t net_ref);
+static inline word_t index_to_ref(const uint32_t net_i);
+static word_t socket_create(const uint32_t host, const uint16_t port);
+static void net_check_ref(const word_t net_ref);
+static word_t socket_store(const Sock_t* sock);
 
 
 static const uint32_t k_index_to_ref = 0xCC00000C;
@@ -18,7 +18,7 @@ static MArr_t net_conn = {0, NULL, NULL}; // Keep track of connections
 /**
 * Recover network index from network reference
 **/
-static inline uint32_t ref_to_index(word_t net_ref)
+static inline uint32_t ref_to_index(const word_t net_ref)
 {
     return (k_ref_to_index & (uint32_t)net_ref) >> 4;
 }
@@ -27,7 +27,7 @@ static inline uint32_t ref_to_index(word_t net_ref)
 /**
 * Create a network reference from network index
 **/
-static inline word_t index_to_ref(uint32_t net_i)
+static inline word_t index_to_ref(const uint32_t net_i)
 {
     return (word_t)(k_index_to_ref | (net_i << 4));
 }
@@ -36,7 +36,7 @@ static inline word_t index_to_ref(uint32_t net_i)
 /**
 * Create an IPv4 TCP socket and return it's network reference
 **/
-static word_t socket_create(uint32_t host, uint16_t port)
+static word_t socket_create(const uint32_t host, const uint16_t port)
 {
     Sock_t* sock = (Sock_t*)malloc(sizeof(Sock_t));
     sock->fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -54,9 +54,9 @@ static word_t socket_create(uint32_t host, uint16_t port)
 /**
 * Utility to check if network reference is valid
 **/
-static void net_check_ref(word_t net_ref)
+static void net_check_ref(const word_t net_ref)
 {
-    if (((uint32_t)net_ref & k_index_to_ref) != k_index_to_ref)
+    if ((((uint32_t)net_ref & 0xFF00000F) ^ k_index_to_ref) != 0)
     {
         fprintf(stderr, "[ERR] Invalid network reference or program requires more connections than is possible. In \"net.c::net_check_ref\".\n");
         destroy_ijvm_now();
@@ -68,7 +68,7 @@ static void net_check_ref(word_t net_ref)
 * Add the socket to network connections so it can be tracked/modified.
 * Return  network reference of saved socket
 **/
-static word_t socket_store(Sock_t* sock)
+static word_t socket_store(const Sock_t* sock)
 {
     uint32_t net_i;
     word_t net_ref;
@@ -94,10 +94,10 @@ static word_t socket_store(Sock_t* sock)
 }
 
 
-word_t net_bind(word_t port)
+word_t net_bind(const word_t port)
 {
-    word_t net_ref = socket_create(INADDR_ANY, (uint16_t)port);
-    uint32_t net_i = ref_to_index(net_ref);
+    const word_t net_ref = socket_create(INADDR_ANY, (uint16_t)port);
+    const uint32_t net_i = ref_to_index(net_ref);
     Sock_t* sock = (Sock_t*)marr_get_element(&net_conn, net_i);
     
     int success = bind(sock->fd, (struct sockaddr*)&sock->addr, sock->addr_len);
@@ -126,13 +126,13 @@ word_t net_bind(word_t port)
 }
 
 
-word_t net_connect(word_t host, word_t port)
+word_t net_connect(const word_t host, const word_t port)
 {
-    word_t net_ref = socket_create((uint32_t)host, (uint16_t)port);
-    uint32_t net_i = ref_to_index(net_ref);
+    const word_t net_ref = socket_create((uint32_t)host, (uint16_t)port);
+    const uint32_t net_i = ref_to_index(net_ref);
     Sock_t* sock = (Sock_t*)marr_get_element(&net_conn, net_i);
 
-    int success = connect(sock->fd, (struct sockaddr*)&sock->addr, sock->addr_len);
+    const int success = connect(sock->fd, (struct sockaddr*)&sock->addr, sock->addr_len);
     if (success == -1)
     {
         return 0; // Failed to connect
@@ -143,7 +143,7 @@ word_t net_connect(word_t host, word_t port)
 }
 
 
-char net_recv(word_t net_ref)
+char net_recv(const word_t net_ref)
 {
     uint32_t net_i;
     Sock_t* sock;
@@ -179,7 +179,7 @@ char net_recv(word_t net_ref)
 }
 
 
-void net_send(word_t net_ref, word_t data)
+void net_send(const word_t net_ref, const word_t data)
 {
     uint32_t net_i;
     Sock_t* sock;
@@ -213,7 +213,7 @@ void net_send(word_t net_ref, word_t data)
 }
 
 
-void net_close(word_t net_ref)
+void net_close(const word_t net_ref)
 {
     uint32_t net_i;
     Sock_t* sock;

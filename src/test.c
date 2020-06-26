@@ -6,6 +6,12 @@
 **/
 
 
+word_t tos(void)
+{
+    return (g_cpu->stack)[g_cpu->sp];
+}
+
+
 word_t* get_stack(void)
 {
     return g_cpu->stack;

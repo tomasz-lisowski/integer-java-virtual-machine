@@ -16,7 +16,7 @@
 * Returns  1 on success
 *          0 on failure
 **/
-bool load_bin(char* path);
+bool load_bin(const char* path);
 
 
 #endif

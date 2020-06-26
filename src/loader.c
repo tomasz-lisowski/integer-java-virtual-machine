@@ -3,7 +3,7 @@
 
 
 // Declarations of static functions
-static bool check_file_signature(uint32_t magic_number);
+static bool check_file_signature(const uint32_t magic_number);
 static bool load_consts(FILE* f);
 static bool load_code(FILE* f);
 
@@ -11,7 +11,7 @@ static bool load_code(FILE* f);
 /**
 * Unique file signature of IJVM libraries
 **/
-static uint32_t MAGIC_NUMBER = 0x1DEADFAD;
+static const uint32_t MAGIC_NUMBER = 0x1DEADFAD;
 
 
 /**
@@ -19,7 +19,7 @@ static uint32_t MAGIC_NUMBER = 0x1DEADFAD;
 * Returns  1 on good magic number
 *          0 on bad magic number
 **/
-static bool check_file_signature(uint32_t magic_number)
+static bool check_file_signature(const uint32_t magic_number)
 {
     if (swap_uint32(magic_number) != MAGIC_NUMBER)
     {
@@ -129,7 +129,7 @@ static bool load_code(FILE* f)
 }
 
 
-bool load_bin(char* path)
+bool load_bin(const char* path)
 {
     size_t num_elements_read;
     uint32_t magic_number;

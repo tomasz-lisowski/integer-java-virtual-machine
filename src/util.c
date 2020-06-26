@@ -1,13 +1,13 @@
 #include "util.h"
 
 
-byte_t get_code_byte(int i)
+byte_t get_code_byte(const int i)
 {
     return (g_cpu->code_mem)[i];
 }
 
 
-short get_code_short(int i)
+short get_code_short(const int i)
 {
     byte_t b1 = (g_cpu->code_mem)[i];
     byte_t b2 = (g_cpu->code_mem)[i + 1];
@@ -15,13 +15,13 @@ short get_code_short(int i)
 }
 
 
-uint32_t swap_uint32(uint32_t num)
+uint32_t swap_uint32(const uint32_t num)
 {
     return ((num >> 24) & 0xff) | ((num << 8) & 0xff0000) | ((num >> 8) & 0xff00) | ((num << 24) & 0xff000000);
 }
 
 
-uint64_t power(uint32_t base, uint32_t power)
+uint64_t power(uint32_t base, const uint32_t power)
 {
     if (power == 0)
     {
@@ -35,9 +35,9 @@ uint64_t power(uint32_t base, uint32_t power)
 }
 
 
-char* str_dup(char* src)
+char* str_dup(const char* src)
 {
-    size_t len = strlen(src) + 1;
+    const size_t len = strlen(src) + 1;
     char* dst = (char*)malloc(len);
     if (dst == NULL)
     {
@@ -52,7 +52,7 @@ char* str_dup(char* src)
 }
 
 
-const char* op_decode(byte_t op)
+const char* op_decode(const byte_t op)
 {
     switch (op)
     {
@@ -161,7 +161,7 @@ const char* op_decode(byte_t op)
 }
 
 
-void print_cpu_state(bool compact)
+void print_cpu_state(const bool compact)
 {
     dprintf("[CPU DUMP]\n");
     print_cpu_mem_size(compact);
@@ -173,7 +173,7 @@ void print_cpu_state(bool compact)
 }
 
 
-void print_cpu_mem_size(bool compact)
+void print_cpu_mem_size(const bool compact)
 {
     if (compact)
     {
@@ -195,7 +195,7 @@ void print_cpu_mem_size(bool compact)
 }
 
 
-void print_cpu_const_mem(bool compact)
+void print_cpu_const_mem(const bool compact)
 {
     if (compact)
     {
@@ -217,7 +217,7 @@ void print_cpu_const_mem(bool compact)
 }
 
 
-void print_cpu_code_mem(bool compact)
+void print_cpu_code_mem(const bool compact)
 {
     if (compact)
     {
@@ -239,7 +239,7 @@ void print_cpu_code_mem(bool compact)
 }
 
 
-void print_cpu_registers(bool compact)
+void print_cpu_registers(const bool compact)
 {
     if (compact)
     {
@@ -261,7 +261,7 @@ void print_cpu_registers(bool compact)
 }
 
 
-void print_cpu_stack(bool compact)
+void print_cpu_stack(const bool compact)
 {
     if (compact)
     {
@@ -283,7 +283,7 @@ void print_cpu_stack(bool compact)
 }
 
 
-void print_cpu_local_vars(bool compact)
+void print_cpu_local_vars(const bool compact)
 {
     if (compact)
     {

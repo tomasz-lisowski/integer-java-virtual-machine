@@ -30,7 +30,7 @@ typedef struct Sock_t
 * Return  network reference on success
 *         0 on failure
 **/
-word_t net_bind(word_t port);
+word_t net_bind(const word_t port);
 
 
 /**
@@ -38,26 +38,26 @@ word_t net_bind(word_t port);
 * Return  network reference on success
 *         0 on failure
 **/
-word_t net_connect(word_t host, word_t port);
+word_t net_connect(const word_t host, const word_t port);
 
 
 /**
 * Receive one character on a socket with a given network reference.
 * Return  received character
 **/
-char net_recv(word_t net_ref);
+char net_recv(const word_t net_ref);
 
 
 /**
 * Send one character on a socket with a given network reference
 **/
-void net_send(word_t net_ref, word_t data);
+void net_send(const word_t net_ref, const word_t data);
 
 
 /**
 * Close and delete a socket.
 **/
-void net_close(word_t net_ref);
+void net_close(const word_t net_ref);
 
 
 /**

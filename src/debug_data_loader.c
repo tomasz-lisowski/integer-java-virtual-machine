@@ -4,7 +4,7 @@
 // Declarations of static functions
 static int64_t get_block_size(FILE* f);
 static bool skip_block(FILE* f);
-static bool inc_memory_size(void** arr, uint32_t* arr_size, uint32_t el_size);
+static bool inc_memory_size(void** arr, uint32_t* arr_size, const uint32_t el_size);
 static bool read_symbol_block(FILE* f, SymbolBlock_t* symb_block);
 static void init_symbol_block(SymbolBlock_t* symb_block);
 static void destroy_symbol_block(SymbolBlock_t* symb_block);
@@ -40,7 +40,7 @@ static int64_t get_block_size(FILE* f)
 **/
 static bool skip_block(FILE* f)
 {
-    int64_t block_size = get_block_size(f);
+    const int64_t block_size = get_block_size(f);
     if (block_size < 0)
     {
         return false;
@@ -55,7 +55,7 @@ static bool skip_block(FILE* f)
 * Return  true on success
 *         false on failure (array pointer remains the same)
 **/
-static bool inc_memory_size(void** arr, uint32_t* arr_size, uint32_t el_size)
+static bool inc_memory_size(void** arr, uint32_t* arr_size, const uint32_t el_size)
 {
     void* new_ptr;
     new_ptr = *arr;
@@ -135,7 +135,7 @@ static bool read_symbol_block(FILE* f, SymbolBlock_t* symb_block)
 }
 
 
-bool load_debug_data(char* prog_path)
+bool load_debug_data(const char* prog_path)
 {
     FILE* f;
     bool read_success = true;
@@ -208,13 +208,13 @@ void destroy_debug_data(void)
 }
 
 
-char* get_func_name(uint32_t i)
+const char* get_func_name(const uint32_t i)
 {
     return str_dup(&g_debug_data->func_label.names[g_debug_data->func_label.names_start[i]]);
 }
 
 
-char* get_section_name(uint32_t i)
+const char* get_section_name(const uint32_t i)
 {
     return str_dup(&g_debug_data->sec_label.names[g_debug_data->sec_label.names_start[i]]);
 }

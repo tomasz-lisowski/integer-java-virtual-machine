@@ -6,7 +6,7 @@ void destroy_ijvm(void)
     // ISO-IEC 9899: free(NULL) becomes a NOP
     net_destroy();
     arr_destroy();
-    destroy_cpu();
+    cpu_destroy();
     dprintf("[DESTROY IJVM]\n");
 }
 

@@ -2,11 +2,11 @@
 
 
 // Declarations of static functions
-static inline uint32_t ref_to_index(word_t arr_ref);
-static inline word_t index_to_ref(uint32_t arr_i);
-static word_t arr_store(word_t* arr);
-static void arr_check_bounds(word_t arr_ref, word_t i);
-static void arr_remove(uint32_t arr_i);
+static inline uint32_t ref_to_index(const word_t arr_ref);
+static inline word_t index_to_ref(const uint32_t arr_i);
+static word_t arr_store(const word_t* arr);
+static void arr_check_bounds(const word_t arr_ref, const word_t i);
+static void arr_remove(const uint32_t arr_i);
 static void mark_arrays(void);
 static uint32_t sweep_arrays(void);
 
@@ -21,7 +21,7 @@ static bool* marked_arrays;
 /**
 * Recover array index from array reference
 **/
-static inline uint32_t ref_to_index(word_t arr_ref)
+static inline uint32_t ref_to_index(const word_t arr_ref)
 {
     return (k_ref_to_index & (uint32_t)arr_ref) >> 4;
 }
@@ -30,7 +30,7 @@ static inline uint32_t ref_to_index(word_t arr_ref)
 /**
 * Create an array reference from array index
 **/
-static inline word_t index_to_ref(uint32_t i)
+static inline word_t index_to_ref(const uint32_t i)
 {
     return (word_t)(k_index_to_ref | (i << 4));
 }
@@ -40,7 +40,7 @@ static inline word_t index_to_ref(uint32_t i)
 * Add an array to array memory so it can be tracked/modified.
 * Return  array reference of saved array
 **/
-static word_t arr_store(word_t* arr)
+static word_t arr_store(const word_t* arr)
 {
     uint32_t arr_i;
     word_t arr_ref;
@@ -61,7 +61,7 @@ static word_t arr_store(word_t* arr)
 
     // Return array reference
     arr_ref = index_to_ref(arr_i);
-    if (((uint32_t)arr_ref & k_index_to_ref) != k_index_to_ref)
+    if ((((uint32_t)arr_ref & 0xFF00000F) ^ k_index_to_ref) != 0)
     {
         fprintf(stderr, "[ERR] Program requires more arrays than is supported. In \"array.c::arr_store\".\n");
         destroy_ijvm_now();
@@ -70,7 +70,7 @@ static word_t arr_store(word_t* arr)
 }
 
 
-word_t arr_create(word_t count)
+word_t arr_create(const word_t count)
 {
     word_t arr_ref;
     word_t* arr_ptr;
@@ -102,14 +102,14 @@ word_t arr_create(word_t count)
 /**
 * Utility to check if combintation of array reference and index are valid
 **/
-static void arr_check_bounds(word_t arr_ref, word_t i)
+static void arr_check_bounds(const word_t arr_ref, const word_t i)
 {
     uint32_t arr_size;
     uint32_t arr_i;
     word_t* arr_ptr;
 
     arr_i = ref_to_index(arr_ref);
-    if (((uint32_t)arr_ref & k_index_to_ref) != k_index_to_ref)
+    if ((((uint32_t)arr_ref & 0xFF00000F) ^ k_index_to_ref) != 0)
     {
         fprintf(stderr, "[ERR] Invalid array reference. In \"array.c::arr_check_bounds\".\n");
         destroy_ijvm_now();
@@ -131,7 +131,7 @@ static void arr_check_bounds(word_t arr_ref, word_t i)
 }
 
 
-word_t arr_get(word_t arr_ref, word_t i)
+word_t arr_get(const word_t arr_ref, const word_t i)
 {
     uint32_t arr_i;
     word_t* arr_ptr;
@@ -143,7 +143,7 @@ word_t arr_get(word_t arr_ref, word_t i)
 }
 
 
-void arr_set(word_t arr_ref, word_t i, word_t val)
+void arr_set(const word_t arr_ref, const word_t i, const word_t val)
 {
     uint32_t arr_i;
     word_t* arr_ptr;
@@ -158,7 +158,7 @@ void arr_set(word_t arr_ref, word_t i, word_t val)
 /**
 * Remove a single array based on index in array memory
 **/
-static void arr_remove(uint32_t arr_i)
+static void arr_remove(const uint32_t arr_i)
 {
     free((word_t*)marr_get_element(&arr_mem, arr_i));
     marr_remove_element(&arr_mem, arr_i);
@@ -197,7 +197,7 @@ static void mark_arrays(void)
     for (int stack_i = 0; stack_i < g_cpu->sp; stack_i++)
     {
         stack_el = g_cpu->stack[stack_i];
-        if (((uint32_t)stack_el & k_index_to_ref) != k_index_to_ref)
+        if ((((uint32_t)stack_el & 0xFF00000F) ^ k_index_to_ref) != 0)
         {
             continue; // Element is not in array reference format
         }
@@ -229,7 +229,7 @@ static void mark_arrays(void)
         for (word_t el_i = 1; (uint32_t)el_i <= arr_size; el_i++)
         {
             arr_el = arr_ptr[el_i];
-            if (((uint32_t)arr_el & k_index_to_ref) != k_index_to_ref)
+            if ((((uint32_t)arr_el & 0xFF00000F) ^ k_index_to_ref) != 0)
             {
                 continue; // Element is not in array reference format
             }
@@ -286,7 +286,7 @@ uint32_t arr_gc(void)
 }
 
 
-void arr_print(bool compact)
+void arr_print(const bool compact)
 {
     if (compact)
     {

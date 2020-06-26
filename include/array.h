@@ -16,19 +16,19 @@
 * Return  array reference on success
 *         0 on failure
 **/
-word_t arr_create(word_t count);
+word_t arr_create(const word_t count);
 
 
 /**
 * Get a value from the array
 **/
-word_t arr_get(word_t arr_ref, word_t i);
+word_t arr_get(const word_t arr_ref, const word_t i);
 
 
 /**
 * Change value inside array
 **/
-void arr_set(word_t arr_ref, word_t i, word_t val);
+void arr_set(const word_t arr_ref, const word_t i, const word_t val);
 
 
 /**
@@ -46,7 +46,7 @@ uint32_t arr_gc(void);
 /**
 * Print out all active array references
 **/
-void arr_print(bool compact);
+void arr_print(const bool compact);
 
 
 #endif

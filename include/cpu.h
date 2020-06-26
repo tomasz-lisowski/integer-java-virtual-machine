@@ -39,17 +39,11 @@ extern FILE* restrict g_in_file;
 
 
 /**
-* Return the word at the top of the stack
-**/
-word_t tos(void);
-
-
-/**
 * Pushes element on top of stack
 * Returns  true on success
 *          false on failure
 **/
-bool stack_push(word_t e);
+bool stack_push(const word_t e);
 
 
 /**
@@ -61,31 +55,31 @@ word_t stack_pop(void);
 /**
 * Returns the i'th constant from constant memory
 **/
-word_t get_constant(int i);
+word_t get_constant(const int i);
 
 
 /**
 * Return the i'th variable in the current frame
 **/
-word_t get_local_variable(int i);
+word_t get_local_variable(const int i);
 
 
 /**
 * Update the value of i'th local variable in current frame (or create one if it does not exist)
 **/
-void update_local_variable(word_t new_val, int i);
+void update_local_variable(const word_t new_val, const int i);
 
 
 /**
 * Perform a jump in code memory (from current PC) by a given offset
 **/
-void jump(int32_t offset);
+void jump(const int32_t offset);
 
 
 /**
 * Remove all data associated with the CPU
 **/
-void destroy_cpu(void);
+void cpu_destroy(void);
 
 
 #endif

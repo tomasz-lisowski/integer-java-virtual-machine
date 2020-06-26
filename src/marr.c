@@ -2,7 +2,7 @@
 
 
 // Declarations of static functions
-static uint32_t get_free_index(MArr_t* marr);
+static uint32_t get_free_index(const MArr_t* marr);
 
 
 /**
@@ -11,7 +11,7 @@ static uint32_t get_free_index(MArr_t* marr);
 *         SIZE_MAX_UINT32_T on failure
 * SIZE_MAX_UINT32_T is used as a special value because there will never be this many elements.
 **/
-static uint32_t get_free_index(MArr_t* marr)
+static uint32_t get_free_index(const MArr_t* marr)
 {
     uint32_t free_i = SIZE_MAX_UINT32_T;
     arr_gc();
@@ -27,7 +27,7 @@ static uint32_t get_free_index(MArr_t* marr)
 }
 
 
-void marr_init(MArr_t* marr, uint32_t size)
+void marr_init(MArr_t* marr, const uint32_t size)
 {
     marr->map = NULL;
     marr->values = NULL;
@@ -41,7 +41,7 @@ void marr_init(MArr_t* marr, uint32_t size)
 }
 
 
-void marr_resize(MArr_t* marr, uint32_t new_size)
+void marr_resize(MArr_t* marr, const uint32_t new_size)
 {
     uint32_t tmp_new_size = new_size;
     MArr_t tmp_marr = *marr;
@@ -85,7 +85,7 @@ void marr_resize(MArr_t* marr, uint32_t new_size)
 }
 
 
-bool marr_check_marked(MArr_t* marr, uint32_t val_i)
+bool marr_check_marked(const MArr_t* marr, const uint32_t val_i)
 {
     if (val_i >= marr->size)
     {
@@ -96,9 +96,9 @@ bool marr_check_marked(MArr_t* marr, uint32_t val_i)
 }
 
 
-uint32_t marr_add_element(MArr_t* marr, uintptr_t data)
+uint32_t marr_add_element(const MArr_t* marr, const uintptr_t data)
 {
-    uint32_t free_i = get_free_index(marr);
+    const uint32_t free_i = get_free_index(marr);
     if (free_i == SIZE_MAX_UINT32_T)
     {
         return free_i;
@@ -110,7 +110,7 @@ uint32_t marr_add_element(MArr_t* marr, uintptr_t data)
 }
 
 
-void marr_set_element(MArr_t* marr, uint32_t val_i, uintptr_t data)
+void marr_set_element(const MArr_t* marr, const uint32_t val_i, const uintptr_t data)
 {
     if (val_i >= marr->size)
     {
@@ -123,7 +123,7 @@ void marr_set_element(MArr_t* marr, uint32_t val_i, uintptr_t data)
 }
 
 
-uintptr_t marr_get_element(MArr_t* marr, uint32_t val_i)
+uintptr_t marr_get_element(const MArr_t* marr, const uint32_t val_i)
 {
     if (val_i >= marr->size)
     {
@@ -139,7 +139,7 @@ uintptr_t marr_get_element(MArr_t* marr, uint32_t val_i)
 }
 
 
-void marr_remove_element(MArr_t* marr, uint32_t val_i)
+void marr_remove_element(const MArr_t* marr, const uint32_t val_i)
 {
     if (val_i >= marr->size)
     {
@@ -164,7 +164,7 @@ void marr_destroy(MArr_t* marr)
 }
 
 
-void marr_print(MArr_t* marr)
+void marr_print(const MArr_t* marr)
 {
     printf("Mapped Array\n");
     printf("\tSize: %i\n", marr->size);

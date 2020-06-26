@@ -82,15 +82,15 @@ static inline void exec_op_nop(void)
 
 static inline void exec_op_bipush(void)
 {
-    word_t arg = (int8_t)get_arg_byte();
+    const word_t arg = (int8_t)get_arg_byte();
     stack_push(arg);
 }
 
 
 static inline void exec_op_ldc_w(void)
 {
-    uint16_t const_index = (uint16_t)get_arg_short();
-    word_t const_val = get_constant(const_index);
+    const uint16_t const_index = (uint16_t)get_arg_short();
+    const word_t const_val = get_constant(const_index);
     stack_push(const_val);
 }
 
@@ -113,7 +113,7 @@ static inline void exec_op_iload(void)
 static inline void exec_op_istore(void)
 {
     uint16_t var_i;
-    word_t val = stack_pop();
+    const word_t val = stack_pop();
     if (next_op_wide)
     {
         var_i = (uint16_t)get_arg_short();
@@ -140,8 +140,8 @@ static inline void exec_op_dup(void)
 
 static inline void exec_op_swap(void)
 {
-    word_t b = stack_pop();
-    word_t a = stack_pop();
+    const word_t b = stack_pop();
+    const word_t a = stack_pop();
     stack_push(b);
     stack_push(a);
 }
@@ -149,24 +149,24 @@ static inline void exec_op_swap(void)
 
 static inline void exec_op_iadd(void)
 {
-    int64_t b = stack_pop();
-    int64_t a = stack_pop();
+    const int64_t b = stack_pop();
+    const int64_t a = stack_pop();
     stack_push((word_t)(a + b));
 }
 
 
 static inline void exec_op_isub(void)
 {
-    word_t b = stack_pop();
-    word_t a = stack_pop();
+    const word_t b = stack_pop();
+    const word_t a = stack_pop();
     stack_push(a - b);
 }
 
 
 static inline void exec_op_iand(void)
 {
-    word_t b = stack_pop();
-    word_t a = stack_pop();
+    const word_t b = stack_pop();
+    const word_t a = stack_pop();
     stack_push(a & b);
 }
 
@@ -190,7 +190,7 @@ static inline void exec_op_iinc(void)
 
 static inline void exec_op_ifeq(void)
 {
-    int16_t jmp_offset = (int16_t)(get_arg_short() - 3); // -3 to get offset from instruction call not address of last argument byte
+    const int16_t jmp_offset = (int16_t)(get_arg_short() - 3); // -3 to get offset from instruction call not address of last argument byte
     if (stack_pop() == 0)
     {
         jump(jmp_offset);
@@ -200,7 +200,7 @@ static inline void exec_op_ifeq(void)
 
 static inline void exec_op_iflt(void)
 {
-    int16_t jmp_offset = (int16_t)(get_arg_short() - 3); // -3 to get offset from instruction call not address of last argument byte
+    const int16_t jmp_offset = (int16_t)(get_arg_short() - 3); // -3 to get offset from instruction call not address of last argument byte
     if (stack_pop() < 0)
     {
         jump(jmp_offset);
@@ -210,7 +210,7 @@ static inline void exec_op_iflt(void)
 
 static inline void exec_op_icmpeq(void)
 {
-    int16_t jmp_offset = (int16_t)(get_arg_short() - 3); // -3 to get offset from instruction call not address of last argument byte
+    const int16_t jmp_offset = (int16_t)(get_arg_short() - 3); // -3 to get offset from instruction call not address of last argument byte
     if (stack_pop() ==  stack_pop())
     {
         jump(jmp_offset);
@@ -220,15 +220,15 @@ static inline void exec_op_icmpeq(void)
 
 static inline void exec_op_goto(void)
 {
-    int16_t jmp_offset = (int16_t)(get_arg_short() - 3); // -3 to get offset from instruction call not address of last argument byte
+    const int16_t jmp_offset = (int16_t)(get_arg_short() - 3); // -3 to get offset from instruction call not address of last argument byte
     jump(jmp_offset);
 }
 
 
 static inline void exec_op_ireturn(void)
 {
-    word_t ret_val = stack_pop();
-    int old_nv = g_cpu->nv;
+    const word_t ret_val = stack_pop();
+    const int old_nv = g_cpu->nv;
 
     g_cpu->sp = g_cpu->fp + 3;
     g_cpu->pc = stack_pop();
@@ -252,8 +252,8 @@ static inline void exec_op_ireturn(void)
 
 static inline void exec_op_ior(void)
 {
-    word_t b = stack_pop();
-    word_t a = stack_pop();
+    const word_t b = stack_pop();
+    const word_t a = stack_pop();
     stack_push(a | b);
 }
 
@@ -262,7 +262,7 @@ static inline void exec_op_invokevirtual(void)
 {
     int old_pc;
     uint16_t num_args, num_locals;
-    word_t offset = get_constant(get_arg_short()); // Move PC to return address while getting offset
+    const word_t offset = get_constant(get_arg_short()); // Move PC to return address while getting offset
 
     old_pc = g_cpu->pc;
     if (offset < 0 || offset >= g_cpu->code_mem_size)
@@ -322,7 +322,7 @@ static inline void exec_op_wide(void)
 
 static inline void exec_op_in(void)
 {
-    word_t c = getc(g_in_file);
+    const word_t c = getc(g_in_file);
     if (c == EOF)
     {
         stack_push(0);
@@ -336,7 +336,7 @@ static inline void exec_op_in(void)
 
 static inline void exec_op_out(void)
 {
-    char data = (char)stack_pop();
+    const char data = (char)stack_pop();
     fprintf(g_out_file, "%c", data);
 }
 
@@ -355,24 +355,24 @@ static inline void exec_op_halt(void)
 
 static inline void exec_op_newarray(void)
 {
-    word_t count = stack_pop();
+    const word_t count = stack_pop();
     stack_push(arr_create(count));
 }
 
 
 static inline void exec_op_iaload(void)
 {
-    word_t array_ref = stack_pop();
-    word_t i = stack_pop();
+    const word_t array_ref = stack_pop();
+    const word_t i = stack_pop();
     stack_push(arr_get(array_ref, i));
 }
 
 
 static inline void exec_op_iastore(void)
 {
-    word_t array_ref = stack_pop();
-    word_t i = stack_pop();
-    word_t val = stack_pop();
+    const word_t array_ref = stack_pop();
+    const word_t i = stack_pop();
+    const word_t val = stack_pop();
     arr_set(array_ref, i, val);
 }
 
@@ -385,37 +385,37 @@ static inline void exec_op_gc(void)
 
 static inline void exec_op_netbind(void)
 {
-    word_t port = stack_pop();
+    const word_t port = stack_pop();
     stack_push(net_bind(port));
 }
 
 
 static inline void exec_op_netconnect(void)
 {
-    word_t port = stack_pop();
-    word_t host = stack_pop();
+    const word_t port = stack_pop();
+    const word_t host = stack_pop();
     stack_push(net_connect(host, port));
 }
 
 
 static inline void exec_op_netin(void)
 {
-    word_t net_ref = stack_pop();
+    const word_t net_ref = stack_pop();
     stack_push(net_recv(net_ref));
 }
 
 
 static inline void exec_op_netout(void)
 {
-    word_t net_ref = stack_pop();
-    word_t data = stack_pop();
+    const word_t net_ref = stack_pop();
+    const word_t data = stack_pop();
     net_send(net_ref, data);
 }
 
 
 static inline void exec_op_netclose(void)
 {
-    word_t net_ref = stack_pop();
+    const word_t net_ref = stack_pop();
     net_close(net_ref);
 }
 
@@ -434,7 +434,7 @@ void run(void)
 bool step(void)
 {
 #ifdef DEBUG
-    int old_pc = g_cpu->pc;
+    const int old_pc = g_cpu->pc;
     const char* op = op_decode((g_cpu->code_mem)[g_cpu->pc]);
 #endif
 
@@ -561,9 +561,9 @@ bool step(void)
 
 bool finished(void)
 {
-    bool end_of_code = g_cpu->pc < 0 || g_cpu->pc >= g_cpu->code_mem_size;
-    bool cpu_err = g_cpu->error_flag;
-    bool cpu_halt = g_cpu->halt_flag;
+    const bool end_of_code = g_cpu->pc < 0 || g_cpu->pc >= g_cpu->code_mem_size;
+    const bool cpu_err = g_cpu->error_flag;
+    const bool cpu_halt = g_cpu->halt_flag;
 
     if (end_of_code || cpu_err || cpu_halt)
     {

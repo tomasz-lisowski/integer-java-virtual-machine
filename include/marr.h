@@ -30,7 +30,7 @@ typedef struct MappedArray_t
 * All memory cells will be initialized to 0's.
 * Size must be strictly less than SIZE_MAX_UINT32_T.
 **/
-void marr_init(MArr_t* marr, uint32_t size);
+void marr_init(MArr_t* marr, const uint32_t size);
 
 
 /**
@@ -38,13 +38,13 @@ void marr_init(MArr_t* marr, uint32_t size);
 * Mapped arrays can get bigger but never smaller.
 * Size must be strictly less than SIZE_MAX_UINT32_T.
 **/
-void marr_resize(MArr_t* marr, uint32_t new_size);
+void marr_resize(MArr_t* marr, const uint32_t new_size);
 
 
 /**
 * Return the "claimed" state of an element from the map
 **/
-bool marr_check_marked(MArr_t* marr, uint32_t val_i);
+bool marr_check_marked(const MArr_t* marr, const uint32_t val_i);
 
 
 /**
@@ -52,26 +52,26 @@ bool marr_check_marked(MArr_t* marr, uint32_t val_i);
 * Return  index claimed for the new entry
 *         SIZE_MAX_UINT32_T if a free name was not found
 **/
-uint32_t marr_add_element(MArr_t* marr, uintptr_t data);
+uint32_t marr_add_element(const MArr_t* marr, const uintptr_t data);
 
 
 /**
 * Update a value in the mapped array.
 **/
-void marr_set_element(MArr_t* marr, uint32_t val_i, uintptr_t data);
+void marr_set_element(const MArr_t* marr, const uint32_t val_i, const uintptr_t data);
 
 
 /**
 * Return the i'th value from the mapped array.
 * If the value requested is unclaimed, crash.
 **/
-uintptr_t marr_get_element(MArr_t* marr, uint32_t val_i);
+uintptr_t marr_get_element(const MArr_t* marr, const uint32_t val_i);
 
 
 /**
 * Properly remove an element from the mapped array
 **/
-void marr_remove_element(MArr_t* marr, uint32_t val_i);
+void marr_remove_element(const MArr_t* marr, const uint32_t val_i);
 
 
 /**
@@ -84,7 +84,7 @@ void marr_destroy(MArr_t* marr);
 /**
 * Print out a list of all claimed values: "index:value"
 **/
-void marr_print(MArr_t* marr);
+void marr_print(const MArr_t* marr);
 
 
 #endif

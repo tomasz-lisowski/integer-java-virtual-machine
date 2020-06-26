@@ -40,7 +40,7 @@ extern DebugData_t* g_debug_data;
 * Return  true on success
 *         false on failure
 **/
-bool load_debug_data(char* prog_path);
+bool load_debug_data(const char* prog_path);
 
 
 /**
@@ -58,13 +58,13 @@ void destroy_debug_data(void);
 /**
 * Return the i'th function name from debug data
 **/
-char* get_func_name(uint32_t i);
+const char* get_func_name(const uint32_t i);
 
 
 /**
 * Return the i'th section name from debug data
 **/
-char* get_section_name(uint32_t i);
+const char* get_section_name(const uint32_t i);
 
 
 #endif

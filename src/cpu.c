@@ -13,13 +13,7 @@ static CPU_t vm_cpu;
 CPU_t* restrict g_cpu = &vm_cpu;
 
 
-word_t tos(void)
-{
-    return (g_cpu->stack)[g_cpu->sp];
-}
-
-
-bool stack_push(word_t e)
+bool stack_push(const word_t e)
 {
     if (++g_cpu->sp < g_cpu->stack_size)
     {
@@ -63,7 +57,7 @@ static bool octuple_stack_size(void)
 {
     word_t* tmp_stack;
     int tmp_stack_size;
-    uint64_t expected_size = (uint32_t)g_cpu->stack_size * sizeof(word_t) * 8;
+    const uint64_t expected_size = (uint32_t)g_cpu->stack_size * sizeof(word_t) * 8;
     if (expected_size > 4294967296 || expected_size == 0)
     {
         fprintf(stderr, "[ERR] Out of memory. In \"cpu.c::octuple_stack_size\".\n");
@@ -90,7 +84,7 @@ static bool octuple_stack_size(void)
 }
 
 
-word_t get_constant(int i)
+word_t get_constant(const int i)
 {
     if (i < 0 || i >= (g_cpu->const_mem_size / 4))
     {
@@ -101,7 +95,7 @@ word_t get_constant(int i)
 }
 
 
-word_t get_local_variable(int i)
+word_t get_local_variable(const int i)
 {
     uint32_t offset = (uint32_t)(g_cpu->lv + i);
     if (i < 0 || i >= g_cpu->nv)
@@ -113,7 +107,7 @@ word_t get_local_variable(int i)
 }
 
 
-void update_local_variable(word_t new_val, int i)
+void update_local_variable(const word_t new_val, const int i)
 {
     if (i < 0 || i >= g_cpu->nv)
     {
@@ -127,7 +121,7 @@ void update_local_variable(word_t new_val, int i)
 }
 
 
-void jump(int32_t offset)
+void jump(const int32_t offset)
 {
     if (g_cpu->pc + offset < 0 || offset >= g_cpu->code_mem_size)
     {
@@ -138,7 +132,7 @@ void jump(int32_t offset)
 }
 
 
-void destroy_cpu(void)
+void cpu_destroy(void)
 {
     free(g_cpu->stack);
     free(g_cpu->code_mem);

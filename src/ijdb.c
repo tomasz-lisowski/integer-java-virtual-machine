@@ -5,34 +5,34 @@
 static void print_frame_stack(void);
 static void print_frame_local_vars(void);
 static void print_all_breakpoints(void);
-static void print_func_calls(uint32_t n);
-static void print_breakpoint_msg(uint32_t id);
+static void print_func_calls(const uint32_t n);
+static void print_breakpoint_msg(const uint32_t id);
 
-static const char* addr_to_func_name(uint32_t addr);
-static uint32_t label_name_to_addr(char* label_name);
+static const char* addr_to_func_name(const uint32_t addr);
+static uint32_t label_name_to_addr(const char* label_name);
 static uint32_t at_breakpoint(void);
 
 static void create_call_history(void);
 static void store_func_call(void);
 static void remove_last_func_call(void);
 
-static void save_last_prog(char* prog_path);
+static void save_last_prog(const char* prog_path);
 
-static void dbg_step(bool step_log);
-static void dbg_run(bool single_step);
+static void dbg_step(const bool step_log);
+static void dbg_run(const bool single_step);
 
 static void exec_step(void);
 static void exec_continue(void);
-static void exec_info(char* about);
+static void exec_info(const char* about);
 static void exec_backtrace(void);
-static void exec_break(char* offset);
+static void exec_break(const char* offset);
 static void exec_run(void);
-static void exec_input(char* prog_path);
-static void exec_file(char* prog_path);
+static void exec_input(const char* prog_path);
+static void exec_file(const char* prog_path);
 static void exec_help(void);
 static void exec_quit(void);
 
-static void cmd_decoder(char* cmd);
+static void cmd_decoder(const char* cmd);
 static void init_last_prog(void);
 static void destroy_last_prog(void);
 static void init_breakpoints(void);
@@ -94,7 +94,7 @@ static void print_all_breakpoints(void)
 * Print out last n function calls or all calls if n is 0.
 * When n = 0, prints a numbered vertical list.
 **/
-static void print_func_calls(uint32_t n)
+static void print_func_calls(const uint32_t n)
 {
     uint32_t func_addr = 0;
     uint32_t calls_printed = 0;
@@ -133,7 +133,7 @@ static void print_func_calls(uint32_t n)
 * Print out information regarding the breakpoint with a given id.
 * Called is responsible for printing a new line character (after adding information if needed).
 **/
-static void print_breakpoint_msg(uint32_t id)
+static void print_breakpoint_msg(const uint32_t id)
 {
     printf("Breakpoint %i, in ", id);
     print_func_calls(1);
@@ -145,7 +145,7 @@ static void print_breakpoint_msg(uint32_t id)
 * Return  function name string on success
 *         "??" string on failure (e.g. when there are no symbols in the binary)
 **/
-static const char* addr_to_func_name(uint32_t addr)
+static const char* addr_to_func_name(const uint32_t addr)
 {
     char* parent_symb_name = NULL;
 
@@ -183,7 +183,7 @@ static const char* addr_to_func_name(uint32_t addr)
 * Return  label address on success
 *         SIZE_MAX_UINT32_T on failure (e.g. when there are no symbols in the binary)
 **/
-static uint32_t label_name_to_addr(char* label_name)
+static uint32_t label_name_to_addr(const char* label_name)
 {
     uint32_t symb_addr = SIZE_MAX_UINT32_T;
 
@@ -226,7 +226,7 @@ static uint32_t label_name_to_addr(char* label_name)
 **/
 static uint32_t at_breakpoint(void)
 {
-    uint32_t curr_pc = (uint32_t)g_cpu->pc;
+    const uint32_t curr_pc = (uint32_t)g_cpu->pc;
     for (uint32_t i = 0; i < (uint32_t)g_dbg_state->brkpts.num; i++)
     {
         if (g_dbg_state->brkpts.addrs[i] == curr_pc)
@@ -328,9 +328,9 @@ static void remove_last_func_call(void)
 /**
 * Store program path for furutre use when a re-load is needed
 **/
-static void save_last_prog(char* prog_path)
+static void save_last_prog(const char* prog_path)
 {
-    char* prog_path_cpy = str_dup(prog_path); // In case pointers are the same (case prog_path == g_dbg_state->last_prog_path)
+    const char* prog_path_cpy = str_dup(prog_path); // In case pointers are the same (case prog_path == g_dbg_state->last_prog_path)
     free(g_dbg_state->last_prog_path);
     g_dbg_state->last_prog_path = str_dup(prog_path_cpy);
     if (g_dbg_state->last_prog_path == NULL)
@@ -346,7 +346,7 @@ static void save_last_prog(char* prog_path)
 /**
 * Step the VM and print out debugger information about the step (including breakpoint information)
 **/
-static void dbg_step(bool step_log)
+static void dbg_step(const bool step_log)
 {
     const char* op = op_decode(g_cpu->code_mem[g_cpu->pc]);
 
@@ -369,7 +369,7 @@ static void dbg_step(bool step_log)
 /**
 * Step through program (taking into account breakpoints)
 **/
-static void dbg_run(bool single_step)
+static void dbg_run(const bool single_step)
 {
     if (single_step)
     {
@@ -473,7 +473,7 @@ static void exec_start(void)
 }
 
 
-static void exec_info(char* about)
+static void exec_info(const char* about)
 {
     if (g_dbg_state->prog_state == EMPTY)
     {
@@ -515,7 +515,7 @@ static void exec_backtrace(void)
 }
 
 
-static void exec_break(char* offset)
+static void exec_break(const char* offset)
 {
     uint32_t offset_num;
     uint32_t tmp_mem_size;
@@ -560,7 +560,7 @@ static void exec_run(void)
 }
 
 
-static void exec_input(char* prog_path)
+static void exec_input(const char* prog_path)
 {
     FILE* prog;
     if (g_dbg_state->prog_state == LOADED || g_dbg_state->prog_state == STARTED)
@@ -589,7 +589,7 @@ static void exec_input(char* prog_path)
 }
 
 
-static void exec_file(char* prog_path)
+static void exec_file(const char* prog_path)
 {
     destroy_ijvm();
 
@@ -656,7 +656,7 @@ static void exec_quit(void)
 }
 
 
-static void cmd_decoder(char* whole_cmd)
+static void cmd_decoder(const char* whole_cmd)
 {
     char cmd_cpy[strlen(whole_cmd)];
     char* cmd;

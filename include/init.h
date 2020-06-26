@@ -17,7 +17,7 @@
 * Returns  0 on success
 *         -1 on failure
 **/
-int init_ijvm(char* binary_path);
+int init_ijvm(const char* binary_path);
 
 
 /**
