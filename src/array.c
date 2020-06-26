@@ -55,7 +55,7 @@ static word_t arr_store(word_t* arr)
     arr_i = marr_add_element(&arr_mem, (uintptr_t)arr);
     if (arr_i >= SIZE_MAX_UINT32_T)
     {
-        marr_resize(&arr_mem, arr_mem.size * 8);
+        marr_resize(&arr_mem, arr_mem.size * 2);
         arr_i = marr_add_element(&arr_mem, (uintptr_t)arr);
     }
 

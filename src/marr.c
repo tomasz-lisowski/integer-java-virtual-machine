@@ -14,6 +14,7 @@ static uint32_t get_free_index(MArr_t* marr);
 static uint32_t get_free_index(MArr_t* marr)
 {
     uint32_t free_i = SIZE_MAX_UINT32_T;
+    arr_gc();
     for (uint32_t map_ptr = 0; map_ptr < marr->size; map_ptr++)
     {
         if (marr->map[map_ptr] == false)
