@@ -63,7 +63,7 @@ static bool octuple_stack_size(void)
 {
     word_t* tmp_stack;
     int tmp_stack_size;
-    uint64_t expected_size = (uint64_t)g_cpu->stack_size * (uint8_t)sizeof(word_t) * 8;
+    uint64_t expected_size = (uint32_t)g_cpu->stack_size * sizeof(word_t) * 8;
     if (expected_size >= 4294967296 || expected_size == 0)
     {
         fprintf(stderr, "[ERR] Out of memory. In \"cpu.c::octuple_stack_size\".\n");

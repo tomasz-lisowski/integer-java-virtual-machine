@@ -86,6 +86,11 @@ void marr_resize(MArr_t* marr, uint32_t new_size)
 
 bool marr_check_marked(MArr_t* marr, uint32_t val_i)
 {
+    if (val_i >= marr->size)
+    {
+        fprintf(stderr, "[ERR] Out of bounds map check. In \"marr.c::marr_check_marked\".\n");
+        destroy_ijvm_now();
+    }
     return marr->map[val_i];
 }
 

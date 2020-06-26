@@ -72,9 +72,17 @@ static word_t arr_store(word_t* arr)
 
 word_t arr_create(word_t count)
 {
-    uint32_t tmp_count = (uint32_t)count;
     word_t arr_ref;
-    word_t* arr_ptr = (word_t*)calloc(tmp_count + 1, sizeof(word_t));
+    word_t* arr_ptr;
+    uint32_t tmp_count;
+    if (count <= 0)
+    {
+        fprintf(stderr, "[ERR] Invalid array size. In \"array.c::arr_create\".\n");
+        destroy_ijvm_now();
+    }
+
+    tmp_count = (uint32_t)count;
+    arr_ptr = (word_t*)calloc(tmp_count + 1, sizeof(word_t));
     if (arr_ptr == NULL)
     {
         if (arr_gc() != 0)
@@ -84,7 +92,7 @@ word_t arr_create(word_t count)
         fprintf(stderr, "[ERR] Failed to allocate memory. In \"array.c::arr_create\".\n");
         destroy_ijvm_now();
     }
-
+    
     arr_ptr[0] = (word_t)count; // First element stores array's size in 'elements' units
     arr_ref = arr_store(arr_ptr);
     return arr_ref;
