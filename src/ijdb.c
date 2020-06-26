@@ -40,6 +40,7 @@ static void destroy_breakpoints(void);
 static void init_call_history(void);
 static void destroy_call_history(void);
 static void restart_debugger(void);
+static void print_usage(const char* binary_path);
 
 
 static DebuggerState_t dbg_state;
@@ -330,7 +331,7 @@ static void remove_last_func_call(void)
 **/
 static void save_last_prog(const char* prog_path)
 {
-    const char* prog_path_cpy = str_dup(prog_path); // In case pointers are the same (case prog_path == g_dbg_state->last_prog_path)
+    char* prog_path_cpy = str_dup(prog_path); // In case pointers are the same (case prog_path == g_dbg_state->last_prog_path)
     free(g_dbg_state->last_prog_path);
     g_dbg_state->last_prog_path = str_dup(prog_path_cpy);
     if (g_dbg_state->last_prog_path == NULL)
@@ -639,9 +640,11 @@ static void exec_help(void)
         "\n"
         "* Note that running \"file <path/to/binary>\" when a program is running,\n"
         "will terminate the current program and load the new one into a fresh VM.\n"
-        "\n"
         "* Frame information will be printed out in the following format: \"[bottom ... top]\".\n"
-        "* Breakpoint information will be printed in the following format: \"Breakpoint <id>, in <func_addr> <func_name> ( <arg1>, <arg2>, ... )\" but other information may also be appended to the end.\n"
+        "* Breakpoint information will be printed in the following format: \"Breakpoint <id>, in <func_addr> <func_name> ( <arg1>, <arg2>, ... )\" \n"
+        "but other information may also be appended to the end.\n"
+        "* It is possible to use a symbol name as a breakpoint address. \n"
+        "The label should be provided in the following format \"function#section\" or \"function\".\n"
         "* Backtrace information will be printed in the following format: \"#<id>  <func_addr> <func_name> ( <arg1>, <arg2>, ... )\".\n"
     );
 }

@@ -208,13 +208,13 @@ void destroy_debug_data(void)
 }
 
 
-const char* get_func_name(const uint32_t i)
+char* get_func_name(const uint32_t i)
 {
     return str_dup(&g_debug_data->func_label.names[g_debug_data->func_label.names_start[i]]);
 }
 
 
-const char* get_section_name(const uint32_t i)
+char* get_section_name(const uint32_t i)
 {
     return str_dup(&g_debug_data->sec_label.names[g_debug_data->sec_label.names_start[i]]);
 }

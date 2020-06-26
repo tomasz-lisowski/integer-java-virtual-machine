@@ -251,3 +251,31 @@ void net_destroy(void)
     }
     marr_destroy(&net_conn);
 }
+
+
+void net_print(const bool compact)
+{
+    if (compact)
+    {
+        dprintf("NR[");
+        for (uint32_t i = 0; i < net_conn.size; i++)
+        {
+            if (marr_check_marked(&net_conn, i) == true)
+            {
+                dprintf(" 0x%X", index_to_ref(i));
+            }
+        }
+        dprintf(" ]");
+    }
+    else
+    {
+        dprintf("NR\n");
+        for (uint32_t i = 0; i < net_conn.size; i++)
+        {
+            if (marr_check_marked(&net_conn, i) == true)
+            {
+                dprintf("\t0x%X\n", index_to_ref(i));
+            }
+        }
+    }
+}

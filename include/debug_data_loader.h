@@ -58,13 +58,13 @@ void destroy_debug_data(void);
 /**
 * Return the i'th function name from debug data
 **/
-const char* get_func_name(const uint32_t i);
+char* get_func_name(const uint32_t i);
 
 
 /**
 * Return the i'th section name from debug data
 **/
-const char* get_section_name(const uint32_t i);
+char* get_section_name(const uint32_t i);
 
 
 #endif

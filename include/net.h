@@ -66,4 +66,10 @@ void net_close(const word_t net_ref);
 void net_destroy(void);
 
 
+/**
+* Print out all active network references
+**/
+void net_print(const bool compact);
+
+
 #endif

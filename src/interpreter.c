@@ -553,6 +553,8 @@ bool step(void)
     print_cpu_local_vars(true);
     dprintf("    ");
     arr_print(true);
+    dprintf("    ");
+    net_print(true);
     dprintf("\n");
 #endif
     return true;

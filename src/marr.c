@@ -3,6 +3,7 @@
 
 // Declarations of static functions
 static uint32_t get_free_index(const MArr_t* marr);
+static uint32_t element_creations = 0;
 
 
 /**
@@ -14,7 +15,15 @@ static uint32_t get_free_index(const MArr_t* marr);
 static uint32_t get_free_index(const MArr_t* marr)
 {
     uint32_t free_i = SIZE_MAX_UINT32_T;
-    arr_gc();
+    if (element_creations >= 100)
+    {
+        element_creations = 0;
+        arr_gc();
+    }
+    else
+    {
+        element_creations++;
+    }
     for (uint32_t map_ptr = 0; map_ptr < marr->size; map_ptr++)
     {
         if (marr->map[map_ptr] == false)
