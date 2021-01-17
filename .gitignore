@@ -1,0 +1,15 @@
+# Ignore all
+/**
+
+!/.gitignore
+!/README.md
+
+# Include source code
+!/src
+!/src/**
+!/include
+!/include/**
+
+# Include docs
+!/docs
+!/docs/**
