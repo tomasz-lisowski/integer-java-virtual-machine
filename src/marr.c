@@ -3,6 +3,7 @@
 
 // Declarations of static functions
 static uint32_t get_free_index(const MArr_t* marr);
+
 static uint32_t element_creations = 0;
 
 
@@ -179,8 +180,18 @@ void marr_print(const MArr_t* marr)
     printf("\tSize: %i\n", marr->size);
     if (marr->size > 0)
     {
-        printf("\tData:\n", marr->size);
-        printf("\tIndex Map Value\n");
+        printf("\tData:\n");
+        for (uint32_t i = 0; i < marr->size; i++)
+        {
+            if (marr->map[i] == true)
+            {
+                printf("[%i] Taken: 0x%lx\n", i, marr->values[i]);
+            }
+            else
+            {
+                printf("[%i] Free\n", i);
+            }
+        }
     }
     else
     {
@@ -190,10 +201,5 @@ void marr_print(const MArr_t* marr)
     for (uint32_t marr_i = 0; marr_i < marr->size; marr_i++)
     {
         printf("\t#%-4i %-3d 0x%016lX\n", marr_i + 1, marr->map[marr_i], marr->values[marr_i]);
-    }
-
-    if (marr->size > 0)
-    {
-        printf("\n");
     }
 }

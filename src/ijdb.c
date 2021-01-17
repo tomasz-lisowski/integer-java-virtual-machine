@@ -615,7 +615,7 @@ static void exec_file(const char* prog_path)
     }
     else
     {
-        printf("Program has been loaded.\n", prog_path);
+        printf("Program has been loaded.\n");
         g_dbg_state->prog_state = LOADED;
         save_last_prog(prog_path);
     }
