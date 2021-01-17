@@ -13,3 +13,5 @@
 # Include docs
 !/docs
 !/docs/**
+!/misc
+!/misc/**
