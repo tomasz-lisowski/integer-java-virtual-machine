@@ -9,11 +9,10 @@ steps.
 
 # Compiling
 Run `build.sh` to build the IJVM and IJDB binaries. `build_afl.sh` builds an instrumented IJVM
-binary for use with the american fuzzy lop (AFL) fuzzer.
+binary for use with the american fuzzy lop (AFL) fuzzer. Note that `CC` environmental variable 
+must be set to the desired compiler before running the build scripts.
 
-Enable the debug print `dprintf` found in `include/util.h` by setting the `-DDEBUG` compiler flag,
-this can be done as follows `./build.sh -DDEBUG` since the content of the first argument passed to
-the build script is forwarded directly to the compiler.
+Enable the debug print `dprintf` found in `include/util.h` by setting the `DEBUG` environmental variable.
 
 With the debug flag set, the IJVM will print out human-readable information regarding the executed
 instructions and how they affected the state of the virtual machine. Below is an example:

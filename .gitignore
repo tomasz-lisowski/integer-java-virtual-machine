@@ -4,6 +4,9 @@
 !/.gitignore
 !/README.md
 
+# Include build scripts
+!/*.sh
+
 # Include source code
 !/src
 !/src/**
