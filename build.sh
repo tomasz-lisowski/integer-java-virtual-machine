@@ -4,7 +4,8 @@ shopt -s extglob
 mkdir -p build
 pushd build
 SRC=$(ls -t ../src/*.c)
-CFLAGS+=("-Wall -std=c11 -I ../include -l readline")
+CFLAGS+=("-Wall -std=c11 -I ../include")
+CFLAGS_IJDB=("-l readline")
 
 $CC \
 	$CFLAGS \
@@ -21,6 +22,7 @@ $CC \
 
 $CC \
 	$CFLAGS \
+	$CFLAGS_IJDB \
 	$OBJ_IJDB \
 	-o ijdb.bin
 popd
